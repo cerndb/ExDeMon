@@ -86,11 +86,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	
 	@Override
 	public JavaRDD<Tuple2<StatusKey, StatusValue>> load(JavaSparkContext context) throws IOException, ConfigurationException {
-	    setUpConsumer();
-        
-		List<ConsumerRecordSer> list = getAllRecords();
-		
-		consumer.close();
+	    List<ConsumerRecordSer> list = getAllRecords();
 		
         JavaRDD<ConsumerRecordSer> kafkaContent = context.parallelize(list);
 		
@@ -113,6 +109,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
     }
 
     private List<ConsumerRecordSer> getAllRecords() {
+        setUpConsumer();
+        
         List<ConsumerRecordSer> list = new LinkedList<>();
         
         long[] lastOffsets = new long[consumer.partitionsFor(topic).size()];
@@ -132,6 +130,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
         
         checkAllRecordsConsumed(lastOffsets);
         
+        consumer.close();
+        
         return list;
     }
     
@@ -144,8 +144,12 @@ public class KafkaStatusesStorage extends StatusesStorage {
 
         consumer.seekToEnd(partitions);
         consumer.poll(0);
-        for (TopicPartition tp : partitions)
+        for (TopicPartition tp : partitions) {
             until[tp.partition()] = consumer.position(tp) - 1;
+            
+            if(until[tp.partition()] < 0)
+                until[tp.partition()] = 0;
+        }
         
         if(!Arrays.equals(until, lastOffsets)) {
             LOG.error("Some partitions were not completelly consumed when reading the state.");
