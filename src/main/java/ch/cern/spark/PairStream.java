@@ -53,7 +53,7 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 		
 		Optional<StatusesStorage> storageOpt = getStorage(context);
 		if(!storageOpt.isPresent())
-			throw new ConfigurationException("Storgae need to be configured");
+			throw new ConfigurationException("Storage needs to be configured");
 		StatusesStorage storage = storageOpt.get();
 		
 		JavaRDD<Tuple2<K, S>> initialStates = storage.load(context, keyClass, statusClass);
