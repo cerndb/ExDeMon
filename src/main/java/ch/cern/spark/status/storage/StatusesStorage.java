@@ -31,7 +31,9 @@ public abstract class StatusesStorage extends Component{
 		
 		JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = load(context);
 		
-		return statuses.filter(status -> status._1.getClass().isAssignableFrom(keyClass) && status._2.getClass().isAssignableFrom(valueClass))
+		return statuses.filter(status ->
+		                      (keyClass == null || status._1.getClass().isAssignableFrom(keyClass)) 
+		                   && (valueClass == null || status._2.getClass().isAssignableFrom(valueClass)))
 						.map(status -> new Tuple2<K, V>((K)status._1, (V)status._2));
 	}
 

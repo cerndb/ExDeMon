@@ -64,7 +64,7 @@ public class KafkaStatusesManagementTest {
         
         sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
         
-        assertEquals(0, manager.load().count());
+        assertEquals(1, manager.load().count());
     }
 
     private void sendMessage(StatusKey key, StatusValue value) throws IOException {
@@ -72,6 +72,7 @@ public class KafkaStatusesManagementTest {
         String valueS = new String(serializer.fromValue(value));
         
         producer.send(new ProducerRecord<String, String>(topic, keyS, valueS));
+        producer.flush();
     }
 
 }

@@ -54,7 +54,7 @@ public class KafkaStatusesManagement {
         @SuppressWarnings("unchecked")
         Class<K> keyClass = (Class<K>) this.keyClass;
         
-        return storage.load(context, keyClass, StatusValue.class);
+        return storage.load(context, keyClass, null);
     }
 
     private CommandLine parseCommand(String[] args) {
@@ -104,7 +104,7 @@ public class KafkaStatusesManagement {
         else if(cmd.hasOption("notificators"))
             keyClass = NotificatorStatusKey.class;
         else
-            keyClass = StatusKey.class;
+            keyClass = null;
     }
 
 }
