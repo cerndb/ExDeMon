@@ -1,6 +1,7 @@
 package ch.cern.spark;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -44,7 +45,8 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 			Class<K> keyClass,
 			Class<S> statusClass,
 			PairStream<K, V> values,
-			UpdateStatusFunction<K, V, S, R> updateStatusFunction) 
+			UpdateStatusFunction<K, V, S, R> updateStatusFunction,
+			Optional<Stream<K>> removeKeys) 
 					throws ClassNotFoundException, IOException, ConfigurationException {
 		
 		JavaSparkContext context = values.getSparkContext();
@@ -56,23 +58,23 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 		
 		JavaRDD<Tuple2<K, S>> initialStates = storage.load(context, keyClass, statusClass);
 
-        StateSpec<K, V, S, R> statusSpec = StateSpec
-							                .function(updateStatusFunction)
-							                .initialState(initialStates.rdd());
+        StateSpec<K, ActionOrValue<V>, S, R> statusSpec = StateSpec
+        							                .function(updateStatusFunction)
+        							                .initialState(initialStates.rdd());
         
         Option<Duration> timeout = getStatusExpirationPeriod(values.getSparkContext());
         if(timeout.isDefined())
             statusSpec = statusSpec.timeout(timeout.get());
         
         PairStream<K, ActionOrValue<V>> actionsAndValues = values.mapToPair(tuple -> new Tuple2<K, ActionOrValue<V>>(tuple._1, new ActionOrValue<>(tuple._2)));
+
+        if(removeKeys.isPresent())
+            actionsAndValues = actionsAndValues.union(
+                    removeKeys.get().mapToPair(k -> new Tuple2<K, ActionOrValue<V>>(k, new ActionOrValue<>(Action.REMOVE))));
         
-        Stream<K> removeKeys = null;
-        
-        actionsAndValues = actionsAndValues.union(removeKeys.mapToPair(k -> new Tuple2<K, ActionOrValue<V>>(k, new ActionOrValue<>(Action.REMOVE))));
-        
-        StatusStream<K, V, S, R> statusStream = StatusStream.from(values.asJavaDStream()
-        																	.mapToPair(pair -> pair)
-        																	.mapWithState(statusSpec));
+        StatusStream<K, V, S, R> statusStream = StatusStream.from(actionsAndValues.asJavaDStream()
+                    																	.mapToPair(pair -> pair)
+                    																	.mapWithState(statusSpec));
         
         statusStream.getStatuses().foreachRDD((rdd, time) -> storage.save(rdd, time));
         		

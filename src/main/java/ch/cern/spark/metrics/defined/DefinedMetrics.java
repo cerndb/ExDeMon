@@ -2,6 +2,7 @@ package ch.cern.spark.metrics.defined;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,7 +43,12 @@ public class DefinedMetrics {
 	
 	public static Stream<Metric> generate(Stream<Metric> metrics, Properties propertiesSourceProps) throws ClassNotFoundException, IOException, ConfigurationException{
 		StatusStream<DefinedMetricStatuskey, Metric, VariableStatuses, Metric> statuses = 
-				metrics.mapWithState(DefinedMetricStatuskey.class, VariableStatuses.class, new ComputeDefinedMetricKeysF(propertiesSourceProps), new UpdateDefinedMetricStatusesF(propertiesSourceProps));
+				metrics.mapWithState(
+				        DefinedMetricStatuskey.class, 
+				        VariableStatuses.class, 
+				        new ComputeDefinedMetricKeysF(propertiesSourceProps), 
+				        Optional.empty(),
+				        new UpdateDefinedMetricStatusesF(propertiesSourceProps));
 		
         Stream<Metric> definedMetricsWhenBatch = statuses.getStatuses().transform((rdd, time) -> rdd.flatMap(new ComputeBatchDefineMetricsF(time, propertiesSourceProps)));
         

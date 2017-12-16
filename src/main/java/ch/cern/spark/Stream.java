@@ -2,6 +2,7 @@ package ch.cern.spark;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -44,11 +45,12 @@ public class Stream<V> {
 			Class<K> keyClass, 
 			Class<S> statusClass,
 			PairFlatMapFunction<V, K, V> toPairFunction, 
+			Optional<Stream<K>> removeKeys,
 			UpdateStatusFunction<K, V, S, R> updateStatusFunction) throws ClassNotFoundException, IOException, ConfigurationException {
 
 		PairStream<K, V> keyValuePairs = toPair(toPairFunction);
 		
-		return PairStream.mapWithState(keyClass, statusClass, keyValuePairs, updateStatusFunction);
+		return PairStream.mapWithState(keyClass, statusClass, keyValuePairs, updateStatusFunction, removeKeys);
 	}
 
 	public Stream<V> union(Stream<V> input) {

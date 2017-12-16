@@ -9,13 +9,13 @@ public class StatusStream<K extends StatusKey, V, S extends StatusValue, R> exte
 	
 	private PairStream<K, S> statuses;
 	
-	private StatusStream(JavaMapWithStateDStream<K, V, S, R> stateStream) {
+	private StatusStream(JavaMapWithStateDStream<K, ActionOrValue<V>, S, R> stateStream) {
 		super(stateStream);
 		
 		this.statuses = PairStream.from(stateStream.stateSnapshots());
 	}
 
-	public static<K extends StatusKey, V, S extends StatusValue, R> StatusStream<K, V, S, R> from(JavaMapWithStateDStream<K, V, S, R> input) {
+	public static<K extends StatusKey, V, S extends StatusValue, R> StatusStream<K, V, S, R> from(JavaMapWithStateDStream<K, ActionOrValue<V>, S, R> input) {
 		return new StatusStream<>(input);
 	}
 
