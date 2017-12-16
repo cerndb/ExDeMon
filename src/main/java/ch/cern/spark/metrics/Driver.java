@@ -10,7 +10,10 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.Logger;
 import org.apache.spark.streaming.Durations;
+import org.apache.spark.streaming.api.java.JavaDStream;
+import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component.Type;
@@ -29,9 +32,12 @@ import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.schema.MetricSchemas;
 import ch.cern.spark.metrics.source.MetricsSource;
 import ch.cern.spark.status.StatusKey;
+import ch.cern.spark.status.storage.JSONStatusSerializer;
 import ch.cern.spark.status.storage.StatusesStorage;
 
 public final class Driver {
+    
+    private transient final static Logger LOG = Logger.getLogger(Driver.class.getName());
     
     public static String BATCH_INTERVAL_PARAM = "spark.batch.time";
     
@@ -44,8 +50,21 @@ public final class Driver {
 	private Optional<AnalysisResultsSink> analysisResultsSink;
 	private List<NotificationsSink> notificationsSinks;
 
+	public static String STATUSES_REMOVAL_SOCKET_PARAM = "statuses.removal.socket";
+	private String statuses_removal_socket_host;
+	private Integer statuses_removal_socket_port;
+    private transient JSONStatusSerializer jsonSerializer;
+
 	public Driver(Properties properties) throws Exception {
 		removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
+		
+		String removalSocket = properties.getProperty(STATUSES_REMOVAL_SOCKET_PARAM);
+		if(removalSocket != null) {
+		    String[] host_port = removalSocket.trim().split(":");
+		    
+		    statuses_removal_socket_host = host_port[0];
+		    statuses_removal_socket_port = Integer.parseInt(host_port[1]);
+		}
 		
         ssc = newStreamingContext(properties);
 
@@ -90,7 +109,7 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext(Properties propertiesSourceProps) throws Exception {
 	    
-    		Stream<Metric> metrics = getMetricstream(propertiesSourceProps);
+    		Stream<Metric> metrics = getMetricStream(propertiesSourceProps);
     		
     		Optional<Stream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
     		
@@ -111,11 +130,22 @@ public final class Driver {
 	}
 
 	private Optional<Stream<StatusKey>> getStatusesToRemoveStream() {
+	    if(statuses_removal_socket_host == null || statuses_removal_socket_port == null)
+	        return Optional.empty();
+	    
+	    LOG.info("Socket listening for removing statuses: " + statuses_removal_socket_host + ":" + statuses_removal_socket_port);
+        
+        JavaReceiverInputDStream<String> asJSONStrings = ssc.socketTextStream(statuses_removal_socket_host, statuses_removal_socket_port);
+        
+        if(jsonSerializer == null)
+            jsonSerializer = new JSONStatusSerializer();
+        
+        JavaDStream<StatusKey> keysToRemove = asJSONStrings.map(json -> jsonSerializer.toKey(json.getBytes()));
 
-        return Optional.empty();
+        return Optional.of(Stream.from(keysToRemove));
     }
 
-    public Stream<Metric> getMetricstream(Properties propertiesSourceProps) {
+    public Stream<Metric> getMetricStream(Properties propertiesSourceProps) {
 		return metricSources.stream()
 				.map(source -> MetricSchemas.generate(source.createStream(ssc), propertiesSourceProps, source.getId(), source.getSchema()))
 				.reduce((str, stro) -> str.union(stro)).get();
