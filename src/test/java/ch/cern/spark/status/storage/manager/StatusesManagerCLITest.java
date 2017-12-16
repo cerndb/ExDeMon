@@ -1,4 +1,4 @@
-package ch.cern.spark.status.storage.types.kafka;
+package ch.cern.spark.status.storage.manager;
 
 import static org.junit.Assert.assertEquals;
 
@@ -20,11 +20,11 @@ import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.TestStatus;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 
-public class KafkaStatusesManagementTest {
+public class StatusesManagerCLITest {
     
     private transient KafkaTestUtils kafkaTestUtils;
     private String topic;
-    private KafkaStatusesManagement manager;
+    private StatusesManagerCLI manager;
     private KafkaProducer<String, String> producer;
     private JSONStatusSerializer serializer;
     
@@ -36,7 +36,7 @@ public class KafkaStatusesManagementTest {
         topic = "test";
         kafkaTestUtils.createTopic(topic);
         
-        manager = new KafkaStatusesManagement();
+        manager = new StatusesManagerCLI();
         
         Map<String, Object> configs = new HashMap<>();
         configs.put("bootstrap.servers", kafkaTestUtils.brokerAddress());

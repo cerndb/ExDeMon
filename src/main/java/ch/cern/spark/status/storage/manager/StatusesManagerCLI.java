@@ -1,4 +1,4 @@
-package ch.cern.spark.status.storage.types.kafka;
+package ch.cern.spark.status.storage.manager;
 
 import java.io.IOException;
 
@@ -23,13 +23,13 @@ import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.types.KafkaStatusesStorage;
 import scala.Tuple2;
 
-public class KafkaStatusesManagement {
+public class StatusesManagerCLI {
     
     private KafkaStatusesStorage storage;
     private JavaSparkContext context;
     private Class<? extends StatusKey> keyClass;
     
-    public KafkaStatusesManagement() {
+    public StatusesManagerCLI() {
         storage = new KafkaStatusesStorage();
         
         SparkConf sparkConf = new SparkConf();
@@ -42,7 +42,7 @@ public class KafkaStatusesManagement {
     }
     
     public static void main(String[] args) throws ConfigurationException, IOException {
-        KafkaStatusesManagement manager = new KafkaStatusesManagement();
+        StatusesManagerCLI manager = new StatusesManagerCLI();
         manager.config(args);
         
         JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = manager.load();
