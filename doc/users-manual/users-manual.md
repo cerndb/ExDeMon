@@ -25,9 +25,6 @@ The general structure of the configuration file is shown below.
 checkpoint.dir = <path_to_store_stateful_data> (default: /tmp/)
 spark.batch.time = <period like 1h, 3m or 45s> (default: 1m)
 
-# Data for metrics that are not coming will expire 
-data.expiration = <period like 1h, 3m or 45s> (default: 30m)
-
 # Optional
 properties.source.type = <properties_source_type> (default: "file" with path to this configuration file)
 properties.source.expire = <period like 1h, 3m or 45s> (default: 1m)

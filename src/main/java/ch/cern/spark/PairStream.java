@@ -26,7 +26,7 @@ import scala.Tuple2;
 
 public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	
-	public static final String CHECKPPOINT_DURATION_PARAM = "spark.cern.streaming.status.timeout";
+	public static final String STATUSES_EXPIRATION_PERIOD_PARAM = "spark.cern.streaming.status.timeout";
 	
 	private PairStream(JavaPairDStream<K, V> stream) {
 		super(stream.map(tuple -> tuple));
@@ -72,9 +72,12 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	private static Option<Duration> getStatusExpirationPeriod(JavaSparkContext context) {
 		SparkConf conf = context.getConf();
 		
-		Option<String> valueString = conf.getOption(CHECKPPOINT_DURATION_PARAM);
+		Option<String> valueString = conf.getOption(STATUSES_EXPIRATION_PERIOD_PARAM);
 		
-		return Option.apply(new Duration(java.time.Duration.parse(valueString.get()).toMillis()));
+		if(valueString.isDefined())
+		    return Option.apply(new Duration(java.time.Duration.parse(valueString.get()).toMillis()));
+		else
+		    return Option.empty();
 	}
 
 	public JavaPairDStream<K, V> asJavaPairDStream() {

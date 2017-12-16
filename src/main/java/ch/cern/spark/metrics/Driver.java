@@ -18,7 +18,6 @@ import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
-import ch.cern.spark.PairStream;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
@@ -37,9 +36,6 @@ public final class Driver {
     
 	public static String CHECKPOINT_DIR_PARAM = "checkpoint.dir";  
     public static String CHECKPOINT_DIR_DEFAULT = "/tmp/";  
-    
-    public static String DATA_EXPIRATION_PARAM = "data.expiration";
-    public static Duration DATA_EXPIRATION_DEFAULT = Duration.ofHours(3);
     
     private JavaStreamingContext ssc;
     
@@ -177,8 +173,6 @@ public final class Driver {
         		sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "single-file");
         		sparkConf.set(StatusesStorage.STATUS_STORAGE_PARAM + ".path", checkpointDir + "/statuses");
         }
-        Duration dataExpirationPeriod = properties.getPeriod(DATA_EXPIRATION_PARAM, DATA_EXPIRATION_DEFAULT);
-        sparkConf.set(PairStream.CHECKPPOINT_DURATION_PARAM, dataExpirationPeriod.toString());
 
     		long batchInterval = properties.getPeriod(BATCH_INTERVAL_PARAM, Duration.ofMinutes(1)).getSeconds();
 		
