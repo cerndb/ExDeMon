@@ -1,7 +1,6 @@
 package ch.cern.spark.metrics.notificator;
 
 import org.apache.spark.api.java.Optional;
-import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
@@ -9,14 +8,13 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitor;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notifications.Notification;
-import ch.cern.spark.metrics.notificator.Notificator;
-import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.UpdateStatusFunction;
 
 public class UpdateNotificatorStatusesF
-        implements Function4<Time, NotificatorStatusKey, Optional<AnalysisResult>, State<StatusValue>, Optional<Notification>> {
+        extends UpdateStatusFunction<NotificatorStatusKey, AnalysisResult, StatusValue, Notification> {
 
     private static final long serialVersionUID = 1540971922358997509L;
     

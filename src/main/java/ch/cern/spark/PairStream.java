@@ -5,12 +5,8 @@ import java.io.IOException;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.Optional;
-import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.Duration;
-import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
-import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.components.Component.Type;
@@ -20,6 +16,7 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusStream;
 import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.UpdateStatusFunction;
 import ch.cern.spark.status.storage.StatusesStorage;
 import scala.Option;
 import scala.Tuple2;
@@ -40,7 +37,7 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 			Class<K> keyClass,
 			Class<S> statusClass,
 			PairStream<K, V> input,
-			Function4<Time, K, Optional<V>, State<S>, Optional<R>> updateStatusFunction) 
+			UpdateStatusFunction<K, V, S, R> updateStatusFunction) 
 					throws ClassNotFoundException, IOException, ConfigurationException {
 		
 		JavaSparkContext context = input.getSparkContext();

@@ -3,7 +3,6 @@ package ch.cern.spark.metrics.monitors;
 import java.time.Instant;
 
 import org.apache.spark.api.java.Optional;
-import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
@@ -11,8 +10,9 @@ import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.status.StatusValue;
+import ch.cern.spark.status.UpdateStatusFunction;
 
-public class UpdateMonitorStatusesF implements Function4<Time, MonitorStatusKey, Optional<Metric>, State<StatusValue>, Optional<AnalysisResult>> {
+public class UpdateMonitorStatusesF extends UpdateStatusFunction<MonitorStatusKey, Metric, StatusValue, AnalysisResult> {
 
     private static final long serialVersionUID = 3156649511706333348L;
     

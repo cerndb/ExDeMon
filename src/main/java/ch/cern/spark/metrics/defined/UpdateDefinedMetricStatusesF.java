@@ -1,16 +1,15 @@
 package ch.cern.spark.metrics.defined;
 
 import org.apache.spark.api.java.Optional;
-import org.apache.spark.api.java.function.Function4;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
+import ch.cern.spark.status.UpdateStatusFunction;
 
-public class UpdateDefinedMetricStatusesF 
-	implements Function4<Time, DefinedMetricStatuskey, Optional<Metric>, State<VariableStatuses>, Optional<Metric>> {
+public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMetricStatuskey, Metric, VariableStatuses, Metric>{
 
 	private static final long serialVersionUID = 2965182980222300453L;
 
