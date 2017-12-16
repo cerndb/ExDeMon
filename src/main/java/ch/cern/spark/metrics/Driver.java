@@ -2,7 +2,6 @@ package ch.cern.spark.metrics;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -11,10 +10,7 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Logger;
 import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component.Type;
@@ -33,12 +29,10 @@ import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.schema.MetricSchemas;
 import ch.cern.spark.metrics.source.MetricsSource;
 import ch.cern.spark.status.StatusKey;
-import ch.cern.spark.status.storage.JSONStatusSerializer;
+import ch.cern.spark.status.StatusesKeyReceiver;
 import ch.cern.spark.status.storage.StatusesStorage;
 
 public final class Driver {
-    
-    private transient final static Logger LOG = Logger.getLogger(Driver.class.getName());
     
     public static String BATCH_INTERVAL_PARAM = "spark.batch.time";
     
@@ -132,24 +126,8 @@ public final class Driver {
 	private Optional<Stream<StatusKey>> getStatusesToRemoveStream() {
 	    if(statuses_removal_socket_host == null || statuses_removal_socket_port == null)
 	        return Optional.empty();
-	    
-	    LOG.info("Socket listening for removing statuses: " + statuses_removal_socket_host + ":" + statuses_removal_socket_port);
-        
-        JavaReceiverInputDStream<String> asJSONStrings = ssc.socketTextStream(statuses_removal_socket_host, statuses_removal_socket_port);
-        
-        JSONStatusSerializer jsonSerializer = new JSONStatusSerializer();
-        
-        JavaDStream<StatusKey> keysToRemove = asJSONStrings.flatMap(json -> {
-                try {
-                    return Arrays.asList(jsonSerializer.toKey(json.getBytes())).iterator();
-                } catch(Exception e) {
-                    LOG.error("Statuses removal socket: " + e.getMessage(), e);
-                    
-                    return Arrays.asList(new StatusKey[0]).iterator();
-                }
-            });
 
-        return Optional.of(Stream.from(keysToRemove));
+        return Optional.of(Stream.from(ssc.receiverStream(new StatusesKeyReceiver(statuses_removal_socket_host, statuses_removal_socket_port))));
     }
 
     public Stream<Metric> getMetricStream(Properties propertiesSourceProps) {
