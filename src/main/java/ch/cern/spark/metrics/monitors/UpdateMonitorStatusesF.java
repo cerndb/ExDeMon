@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.monitors;
 
-import org.apache.spark.api.java.Optional;
+import java.util.Optional;
+
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
@@ -28,17 +29,13 @@ public class UpdateMonitorStatusesF extends UpdateStatusFunction<MonitorStatusKe
         Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getMonitorID()));
         if(!monitorOpt.isPresent()) {
             status.remove();
+            
             return Optional.empty();
         }
+        
         Monitor monitor = monitorOpt.get();
         
-        java.util.Optional<AnalysisResult> result = monitor.process(status, metric, time);
-        
-        return result.isPresent() ? toOptinal(result) : Optional.empty();
+        return monitor.process(status, metric, time);
     }
-
-	private Optional<AnalysisResult> toOptinal(java.util.Optional<AnalysisResult> result) {
-		return result.isPresent() ? Optional.of(result.get()) : Optional.empty();
-	}
 
 }

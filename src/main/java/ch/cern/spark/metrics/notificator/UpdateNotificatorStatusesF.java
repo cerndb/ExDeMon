@@ -1,6 +1,7 @@
 package ch.cern.spark.metrics.notificator;
 
-import org.apache.spark.api.java.Optional;
+import java.util.Optional;
+
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
@@ -28,7 +29,7 @@ public class UpdateNotificatorStatusesF
     protected Optional<Notification> update(Time time, NotificatorStatusKey ids, AnalysisResult result, State<StatusValue> status) throws Exception {
         Monitors.initCache(propertiesSourceProperties);
 
-        Optional<Monitor> monitorOpt = Optional.fromNullable(Monitors.getCache().get().get(ids.getMonitorID()));
+        Optional<Monitor> monitorOpt = Optional.of(Monitors.getCache().get().get(ids.getMonitorID()));
         if (!monitorOpt.isPresent())
             return Optional.empty();
         Monitor monitor = monitorOpt.get();
@@ -37,7 +38,7 @@ public class UpdateNotificatorStatusesF
         if (notificator.hasStatus())
             toOptional(status).ifPresent(((HasStatus) notificator)::load);
 
-        java.util.Optional<Notification> notification = notificator.apply(result);
+        Optional<Notification> notification = notificator.apply(result);
 
         notificator.getStatus().ifPresent(s -> s.update(status, time));
 
@@ -48,7 +49,7 @@ public class UpdateNotificatorStatusesF
             n.setTimestamp(result.getAnalyzedMetric().getInstant());
         });
 
-        return notification.isPresent() ? Optional.of(notification.get()) : Optional.empty();
+        return notification;
     }
 
     private java.util.Optional<StatusValue> toOptional(State<StatusValue> notificatorState) {

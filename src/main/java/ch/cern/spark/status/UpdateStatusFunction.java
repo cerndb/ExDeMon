@@ -15,13 +15,17 @@ public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends Sta
         if(state.isTimingOut())
             return timingOut(time, key, state);
         
-        return update(time, key, value.get(), state);
+        return toOptional(update(time, key, value.get(), state));
     }
 
-    protected abstract Optional<R> update(Time time, K key, V value, State<S> state) throws Exception;
+    protected abstract java.util.Optional<R> update(Time time, K key, V value, State<S> state) throws Exception;
 
     protected Optional<R> timingOut(Time time, K key, State<S> state) {
         return Optional.empty();
+    }
+    
+    private Optional<R> toOptional(java.util.Optional<R> result) {
+        return result.isPresent() ? Optional.of(result.get()) : Optional.empty();
     }
 
 }
