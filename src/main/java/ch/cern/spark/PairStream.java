@@ -25,8 +25,7 @@ import scala.Tuple2;
 
 public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	
-	public static final String CHECKPPOINT_DURATION_PARAM = "spark.cern.streaming.rdd.checkpoint.timeout";
-	public static final String CHECKPPOINT_DURATION_DEFAULT = java.time.Duration.ofMinutes(30).toString();
+	public static final String CHECKPPOINT_DURATION_PARAM = "spark.cern.streaming.status.timeout";
 	
 	private PairStream(JavaPairDStream<K, V> stream) {
 		super(stream.map(tuple -> tuple));
@@ -54,8 +53,11 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 
         StateSpec<K, V, S, R> statusSpec = StateSpec
 							                .function(updateStatusFunction)
-							                .initialState(initialStates.rdd())
-							                .timeout(getDataExpirationPeriod(input.getSparkContext()));
+							                .initialState(initialStates.rdd());
+        
+        Optional<Duration> timeout = getStatusExpirationPeriod(input.getSparkContext());
+        if(timeout.isPresent())
+            statusSpec = statusSpec.timeout(timeout.get());
         
         StatusStream<K, V, S, R> statusStream = StatusStream.from(input.asJavaDStream()
         																	.mapToPair(pair -> pair)
@@ -66,12 +68,15 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 		return statusStream;
 	}
 
-	private static Duration getDataExpirationPeriod(JavaSparkContext context) {
+	private static Optional<Duration> getStatusExpirationPeriod(JavaSparkContext context) {
 		SparkConf conf = context.getConf();
 		
-		String valueString = conf.get(CHECKPPOINT_DURATION_PARAM, CHECKPPOINT_DURATION_DEFAULT);
+		String valueString = conf.get(CHECKPPOINT_DURATION_PARAM);
 		
-		return new Duration(java.time.Duration.parse(valueString).toMillis());
+		if(valueString != null)
+		    return Optional.of(new Duration(java.time.Duration.parse(valueString).toMillis()));
+		else
+		    return Optional.empty();
 	}
 
 	public JavaPairDStream<K, V> asJavaPairDStream() {
