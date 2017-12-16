@@ -30,6 +30,10 @@ properties.source.type = <properties_source_type> (default: "file" with path to 
 properties.source.expire = <period like 1h, 3m or 45s> (default: 1m)
 properties.source.<other_confs> = <value>
 
+# Optional
+# +info at components that store statuses: defined metrics, monitors and notificators
+statuses.removal.socket = <host:port>
+
 # At least one source is mandatory
 metrics.source.<metric-source-id-1>.type = <metric_source_type>
 metrics.source.<metric-source-id-1>.<other_confs> = <value>
@@ -60,7 +64,7 @@ notifications.sink.<sink-id>.type = <notifications_sink_type>
 notifications.sink.<sink-id>.<other_confs> = <value>
 ```
 
-### Configuration of each component
+### Index
 
 * [Properties source](properties-source.md)
 * [Metrics source](metric-sources.md)
@@ -72,6 +76,8 @@ notifications.sink.<sink-id>.<other_confs> = <value>
   * [Notificators](monitor-notificator.md)
 * [Analysis results sink](analysis-results-sink.md)
 * [Notifications sinks](notifications-sink.md)
+
+* [Statuses management](statuses-management.md)
 
 ### Example of full configuration can be:
 

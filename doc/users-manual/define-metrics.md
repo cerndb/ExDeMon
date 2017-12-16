@@ -158,6 +158,14 @@ Metrics can be grouped by (e.g. machine) with the "metrics.groupby" parameter in
 Group by can be set to ALL, then each metric will be treated independently. 
 If group by is configured to ALL (or all attributes the metrics contain are listed) there is no attributes to differenciate metrics and aggregate them, so aggregation is done over the historical values coming from the metric.
 
+## Status
+
+In order to perform the computation, previous activity needs to be stored. This is stored in a status.
+
+You may want to list the current statuses or remove them in order to stop the generation of metrics of, for example, a specific host.
+
+For that, please read the [statuses management documentation](statuses-management.md).
+
 ## Examples
 
 Some examples of defined metrics can be:

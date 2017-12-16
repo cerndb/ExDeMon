@@ -2,6 +2,7 @@ package ch.cern.spark.metrics;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -140,7 +141,15 @@ public final class Driver {
         if(jsonSerializer == null)
             jsonSerializer = new JSONStatusSerializer();
         
-        JavaDStream<StatusKey> keysToRemove = asJSONStrings.map(json -> jsonSerializer.toKey(json.getBytes()));
+        JavaDStream<StatusKey> keysToRemove = asJSONStrings.flatMap(json -> {
+                try {
+                    return Arrays.asList(jsonSerializer.toKey(json.getBytes())).iterator();
+                } catch(Exception e) {
+                    LOG.error("Statuses removal socket: " + e.getMessage(), e);
+                    
+                    return Arrays.asList(new StatusKey[0]).iterator();
+                }
+            });
 
         return Optional.of(Stream.from(keysToRemove));
     }

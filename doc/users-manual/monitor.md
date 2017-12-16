@@ -59,3 +59,12 @@ The value of any tag can be extracted from an attribute of the analyzed metric. 
 ```
 <tag-key-1> = %<metric-key>
 ```
+
+## Status
+
+In order to perform the analysis, previous activity needs to be stored. This is stored in a status.
+
+You may want to list the current statuses in order to understand the analysis results or remove the status of, for example, a specific host.
+
+For that, please read the [statuses management documentation](statuses-management.md).
+
