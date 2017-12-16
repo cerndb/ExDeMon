@@ -35,8 +35,8 @@ public class UpdateNotificatorStatusesF
         Monitor monitor = monitorOpt.get();
 
         Notificator notificator = monitor.getNotificators().get(ids.getNotificatorID());
-        if (notificator.hasStatus())
-            toOptional(status).ifPresent(((HasStatus) notificator)::load);
+        if (notificator.hasStatus() && status.exists())
+            ((HasStatus) notificator).load(status.get());
 
         Optional<Notification> notification = notificator.apply(result);
 
@@ -50,10 +50,6 @@ public class UpdateNotificatorStatusesF
         });
 
         return notification;
-    }
-
-    private java.util.Optional<StatusValue> toOptional(State<StatusValue> notificatorState) {
-        return notificatorState.exists() ? java.util.Optional.of(notificatorState.get()) : java.util.Optional.empty();
     }
 
 }
