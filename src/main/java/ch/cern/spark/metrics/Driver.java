@@ -54,7 +54,6 @@ public final class Driver {
 	public static String STATUSES_REMOVAL_SOCKET_PARAM = "statuses.removal.socket";
 	private String statuses_removal_socket_host;
 	private Integer statuses_removal_socket_port;
-    private transient JSONStatusSerializer jsonSerializer;
 
 	public Driver(Properties properties) throws Exception {
 		removeSparkCheckpointDir(properties.getProperty(CHECKPOINT_DIR_PARAM, CHECKPOINT_DIR_DEFAULT));
@@ -138,8 +137,7 @@ public final class Driver {
         
         JavaReceiverInputDStream<String> asJSONStrings = ssc.socketTextStream(statuses_removal_socket_host, statuses_removal_socket_port);
         
-        if(jsonSerializer == null)
-            jsonSerializer = new JSONStatusSerializer();
+        JSONStatusSerializer jsonSerializer = new JSONStatusSerializer();
         
         JavaDStream<StatusKey> keysToRemove = asJSONStrings.flatMap(json -> {
                 try {
