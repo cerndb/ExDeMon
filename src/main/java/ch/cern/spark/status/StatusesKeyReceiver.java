@@ -60,7 +60,9 @@ public class StatusesKeyReceiver extends Receiver<StatusKey> {
         String line;
         while ((line = reader.readLine()) != null) {
             try {
-                derializer.toKey(line.getBytes());
+                StatusKey key = derializer.toKey(line.getBytes());
+                
+                store(key);
             } catch(Exception e) {
                 LOG.error("Statuses removal socket: " + e.getMessage(), e);
             }
