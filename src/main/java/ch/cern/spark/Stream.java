@@ -9,6 +9,7 @@ import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.api.java.function.VoidFunction2;
 import org.apache.spark.streaming.Time;
@@ -124,5 +125,9 @@ public class Stream<V> {
 	public void cache() {
 		stream = stream.cache();
 	}
+
+    public<K, T> PairStream<K, T> mapToPair(PairFunction<V, K, T> func) {
+        return PairStream.from(stream.mapToPair(func));
+    }
 	
 }

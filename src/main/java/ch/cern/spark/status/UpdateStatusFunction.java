@@ -25,7 +25,7 @@ public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends Sta
 
     protected abstract java.util.Optional<R> update(K key, V value, State<S> status) throws Exception;
 
-    public Time getTime() {
+    public Time getBatchTime() {
         return time;
     }
     
