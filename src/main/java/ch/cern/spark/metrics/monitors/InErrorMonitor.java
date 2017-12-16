@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.spark.streaming.State;
-import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
@@ -50,7 +49,7 @@ public class InErrorMonitor extends Monitor {
 	}
 	
 	@Override
-	public Optional<AnalysisResult> process(State<StatusValue> storeState, Metric metric, Time time) {
+	public Optional<AnalysisResult> process(State<StatusValue> storeState, Metric metric) {
 		AnalysisResult result = null;
 		
 		if(filter != null) {
@@ -70,7 +69,7 @@ public class InErrorMonitor extends Monitor {
 				result = AnalysisResult.buildWithStatus(Status.EXCEPTION, exception.getClass().getSimpleName() + ": " + exception.getMessage());
 			}
 			
-			store.update(storeState, time);
+			storeState.update(store);
 		}
 
 		if(result != null) {

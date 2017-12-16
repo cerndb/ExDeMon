@@ -3,7 +3,6 @@ package ch.cern.spark.metrics.monitors;
 import java.util.Optional;
 
 import org.apache.spark.streaming.State;
-import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -22,7 +21,7 @@ public class UpdateMonitorStatusesF extends UpdateStatusFunction<MonitorStatusKe
     }
     
     @Override
-    protected Optional<AnalysisResult> update(Time time, MonitorStatusKey ids, Metric metric, State<StatusValue> status)
+    protected Optional<AnalysisResult> update(MonitorStatusKey ids, Metric metric, State<StatusValue> status)
             throws Exception {
         Monitors.initCache(propertiesSourceProperties);
         
@@ -32,10 +31,8 @@ public class UpdateMonitorStatusesF extends UpdateStatusFunction<MonitorStatusKe
             
             return Optional.empty();
         }
-        
-        Monitor monitor = monitorOpt.get();
-        
-        return monitor.process(status, metric, time);
+
+        return monitorOpt.get().process(status, metric);
     }
 
 }

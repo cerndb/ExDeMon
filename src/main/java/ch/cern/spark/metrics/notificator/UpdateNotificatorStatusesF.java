@@ -3,7 +3,6 @@ package ch.cern.spark.metrics.notificator;
 import java.util.Optional;
 
 import org.apache.spark.streaming.State;
-import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.Monitor;
@@ -26,7 +25,7 @@ public class UpdateNotificatorStatusesF
     }
 
     @Override
-    protected Optional<Notification> update(Time time, NotificatorStatusKey ids, AnalysisResult result, State<StatusValue> status) throws Exception {
+    protected Optional<Notification> update(NotificatorStatusKey ids, AnalysisResult result, State<StatusValue> status) throws Exception {
         Monitors.initCache(propertiesSourceProperties);
 
         Optional<Monitor> monitorOpt = Optional.of(Monitors.getCache().get().get(ids.getMonitorID()));
@@ -40,7 +39,7 @@ public class UpdateNotificatorStatusesF
 
         Optional<Notification> notification = notificator.apply(result);
 
-        notificator.getStatus().ifPresent(s -> s.update(status, time));
+        notificator.getStatus().ifPresent(s -> status.update(s));
 
         notification.ifPresent(n -> {
             n.setMonitorID(ids.getMonitorID());

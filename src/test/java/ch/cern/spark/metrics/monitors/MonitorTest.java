@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateImpl;
-import org.apache.spark.streaming.Time;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,12 +70,12 @@ public class MonitorTest {
 		
 		State<StatusValue> store = new StateImpl<>();
 		
-		AnalysisResult result = monitor.process(store, new Metric(Instant.now(), 0f, new HashMap<>()), new Time(0)).get();
+		AnalysisResult result = monitor.process(store, new Metric(Instant.now(), 0f, new HashMap<>())).get();
 		assertEquals(AnalysisResult.Status.ERROR, result.getStatus());
 		assertEquals("1234@cern.ch", result.getTags().get("email"));
 		assertEquals("IT_DB", result.getTags().get("group"));
 		
-		result = monitor.process(store, new Metric(Instant.now(), 15f, new HashMap<>()), new Time(0)).get();
+		result = monitor.process(store, new Metric(Instant.now(), 15f, new HashMap<>())).get();
 		assertEquals(AnalysisResult.Status.OK, result.getStatus());
 		assertEquals("1234@cern.ch", result.getTags().get("email"));
 		assertEquals("IT_DB", result.getTags().get("group"));
@@ -97,7 +96,7 @@ public class MonitorTest {
 		
 		Map<String, String> metricIds = new HashMap<>();
 		metricIds.put("target.conf", "target-in-metric1");
-		AnalysisResult result = monitor.process(store, new Metric(Instant.now(), 0f, metricIds ), new Time(0)).get();
+		AnalysisResult result = monitor.process(store, new Metric(Instant.now(), 0f, metricIds )).get();
 		assertEquals(AnalysisResult.Status.ERROR, result.getStatus());
 		assertEquals("1234@cern.ch", result.getTags().get("email"));
 		assertEquals("IT_DB", result.getTags().get("group"));
@@ -105,7 +104,7 @@ public class MonitorTest {
 		
 		metricIds = new HashMap<>();
 		metricIds.put("target.conf", "target-in-metric2");
-		result = monitor.process(store, new Metric(Instant.now(), 15f, metricIds), new Time(0)).get();
+		result = monitor.process(store, new Metric(Instant.now(), 15f, metricIds)).get();
 		assertEquals(AnalysisResult.Status.OK, result.getStatus());
 		assertEquals("1234@cern.ch", result.getTags().get("email"));
 		assertEquals("IT_DB", result.getTags().get("group"));

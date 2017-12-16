@@ -10,16 +10,25 @@ public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends Sta
 
     private static final long serialVersionUID = 8556057397769787107L;
     
+    private transient Time time;
+    
     @Override
     public Optional<R> call(Time time, K key, Optional<V> value, State<S> state) throws Exception {
         if(state.isTimingOut())
             return timingOut(time, key, state.get());
         
-        return toOptional(update(time, key, value.get(), state));
+        this.time = time;
+        state = new TimedState<S>(state, time);
+        
+        return toOptional(update(key, value.get(), state));
     }
 
-    protected abstract java.util.Optional<R> update(Time time, K key, V value, State<S> status) throws Exception;
+    protected abstract java.util.Optional<R> update(K key, V value, State<S> status) throws Exception;
 
+    public Time getTime() {
+        return time;
+    }
+    
     protected Optional<R> timingOut(Time time, K key, S state) {
         return Optional.empty();
     }

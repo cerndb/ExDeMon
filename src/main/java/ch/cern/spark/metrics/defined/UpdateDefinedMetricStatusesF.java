@@ -3,7 +3,6 @@ package ch.cern.spark.metrics.defined;
 import java.util.Optional;
 
 import org.apache.spark.streaming.State;
-import org.apache.spark.streaming.Time;
 
 import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.Metric;
@@ -21,7 +20,7 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
 	}
 	
     @Override
-    protected Optional<Metric> update(Time time, DefinedMetricStatuskey id, Metric metric, State<VariableStatuses> status) 
+    protected Optional<Metric> update(DefinedMetricStatuskey id, Metric metric, State<VariableStatuses> status) 
             throws Exception {
         DefinedMetrics.initCache(propertiesSourceProps);
         
@@ -38,7 +37,7 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
         
         Optional<Metric> newMetric = definedMetric.generateByUpdate(store, metric, id.getGroupByMetricIDs());
         
-        store.update(status, time);
+        status.update(store);
         
         return newMetric;
     }

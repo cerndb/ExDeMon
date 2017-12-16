@@ -7,7 +7,6 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.spark.streaming.State;
-import org.apache.spark.streaming.Time;
 
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
@@ -75,19 +74,19 @@ public class Monitor {
         return this;
     }
 
-    public Optional<AnalysisResult> process(State<StatusValue> state, Metric metric, Time time) {
+    public Optional<AnalysisResult> process(State<StatusValue> status, Metric metric) {
     		AnalysisResult result = null;
 
         try{
-        		if(analysis.hasStatus() && state.exists())
-            		((HasStatus) analysis).load(state.get());
+        		if(analysis.hasStatus() && status.exists())
+            		((HasStatus) analysis).load(status.get());
         		
             result = analysis.apply(metric);
             
             result.addAnalysisParam("type", analysis.getClass().getAnnotation(RegisterComponent.class).value());
             
             if(analysis.hasStatus())
-            		analysis.getStatus().ifPresent(status -> status.update(state, time));
+            		analysis.getStatus().ifPresent(s -> status.update(s));
         }catch(Throwable e){
             result = AnalysisResult.buildWithStatus(Status.EXCEPTION, e.getClass().getSimpleName() + ": " + e.getMessage());
             LOG.error(e.getMessage(), e);
