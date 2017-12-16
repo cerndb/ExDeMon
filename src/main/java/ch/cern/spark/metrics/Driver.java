@@ -28,6 +28,7 @@ import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.sink.AnalysisResultsSink;
 import ch.cern.spark.metrics.schema.MetricSchemas;
 import ch.cern.spark.metrics.source.MetricsSource;
+import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.storage.StatusesStorage;
 
 public final class Driver {
@@ -91,15 +92,17 @@ public final class Driver {
 	    
     		Stream<Metric> metrics = getMetricstream(propertiesSourceProps);
     		
-		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps));
+    		Optional<Stream<StatusKey>> keysToRemove = getKeysToRemoveStream();
+    		
+		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, keysToRemove));
 		metrics.cache();
 		
-		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps);
+		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, keysToRemove);
 		results.cache();
 
 		analysisResultsSink.ifPresent(results::sink);
 		
-		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps);
+		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, keysToRemove);
 		notifications.cache();
 		
     		notificationsSinks.stream().forEach(notifications::sink);
@@ -107,7 +110,12 @@ public final class Driver {
 		return ssc;
 	}
 
-	public Stream<Metric> getMetricstream(Properties propertiesSourceProps) {
+	private Optional<Stream<StatusKey>> getKeysToRemoveStream() {
+
+        return Optional.empty();
+    }
+
+    public Stream<Metric> getMetricstream(Properties propertiesSourceProps) {
 		return metricSources.stream()
 				.map(source -> MetricSchemas.generate(source.createStream(ssc), propertiesSourceProps, source.getId(), source.getSchema()))
 				.reduce((str, stro) -> str.union(stro)).get();

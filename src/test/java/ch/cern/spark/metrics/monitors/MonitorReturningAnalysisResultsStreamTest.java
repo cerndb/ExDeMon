@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,8 +54,8 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
 		addInput(2,    Metric(0, 89f, "INSTANCE_NAME=machine", "METRIC_NAME=CPU Usage Per Sec"));
 		Stream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Metric> definedMetrics = DefinedMetrics.generate(metricsStream, null);
-		Stream<AnalysisResult> results = Monitors.analyze(definedMetrics, null);
+		Stream<Metric> definedMetrics = DefinedMetrics.generate(metricsStream, null, Optional.empty());
+		Stream<AnalysisResult> results = Monitors.analyze(definedMetrics, null, Optional.empty());
         
         Batches<AnalysisResult> returnedBatches = collect(results);
         
@@ -96,7 +97,7 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
         addInput(3,    Metric(140, 0));
         Stream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<AnalysisResult> results = Monitors.analyze(metricsStream, null);
+		Stream<AnalysisResult> results = Monitors.analyze(metricsStream, null, Optional.empty());
         
         Batches<AnalysisResult> returnedBatches = collect(results);
         
@@ -140,7 +141,7 @@ public class MonitorReturningAnalysisResultsStreamTest extends StreamTestHelper<
         addInput(3,    Metric(140, 0));
         Stream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<AnalysisResult> results = Monitors.analyze(metricsStream, null);
+		Stream<AnalysisResult> results = Monitors.analyze(metricsStream, null, Optional.empty());
         
         Batches<AnalysisResult> returnedBatches = collect(results);
         

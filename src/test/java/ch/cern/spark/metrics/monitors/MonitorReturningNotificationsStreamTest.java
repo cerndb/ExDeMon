@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +68,7 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         addInput(5,    Metric(now.plus(Duration.ofMinutes(26)), 0, "HOST=host1"));
         Stream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Notification> results = Monitors.notify(Monitors.analyze(metricsStream, null), null);
+		Stream<Notification> results = Monitors.notify(Monitors.analyze(metricsStream, null, Optional.empty()), null, Optional.empty());
         
         Batches<Notification> returnedBatches = collect(results);
         
@@ -130,7 +131,7 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         addInput(4,    Metric(now.plus(Duration.ofMinutes(24)), 0, "HOST=host1"));
         Stream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Notification> results = Monitors.notify(Monitors.analyze(metricsStream, null), null);
+		Stream<Notification> results = Monitors.notify(Monitors.analyze(metricsStream, null, Optional.empty()), null, Optional.empty());
         
         Batches<Notification> returnedBatches = collect(results);
         

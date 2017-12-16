@@ -6,6 +6,7 @@ import static org.junit.Assert.assertSame;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 	        
         Stream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null);
+		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
         
         assertExpected(results);
 	}
@@ -103,7 +104,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 	        
         Stream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null);
+		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
         
         assertExpected(results);
 	}
@@ -146,7 +147,7 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
 	        
         Stream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null);
+		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
         
         assertExpected(results);
 	}
