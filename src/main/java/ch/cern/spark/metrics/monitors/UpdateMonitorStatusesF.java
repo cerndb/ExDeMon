@@ -1,7 +1,5 @@
 package ch.cern.spark.metrics.monitors;
 
-import java.time.Instant;
-
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
@@ -23,32 +21,20 @@ public class UpdateMonitorStatusesF extends UpdateStatusFunction<MonitorStatusKe
     }
     
     @Override
-    public Optional<AnalysisResult> call(
-            Time time, MonitorStatusKey ids, Optional<Metric> metricOpt, State<StatusValue> storeState) 
+    protected Optional<AnalysisResult> update(Time time, MonitorStatusKey ids, Metric metric, State<StatusValue> status)
             throws Exception {
-    		Monitors.initCache(propertiesSourceProperties);
+        Monitors.initCache(propertiesSourceProperties);
         
         Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getMonitorID()));
         if(!monitorOpt.isPresent()) {
-        		storeState.remove();
-	        	return Optional.empty();
+            status.remove();
+            return Optional.empty();
         }
         Monitor monitor = monitorOpt.get();
         
-        if(storeState.isTimingOut())
-            return Optional.of(AnalysisResult.buildTimingOut(ids, monitor, Instant.ofEpochMilli(time.milliseconds())));
+        java.util.Optional<AnalysisResult> result = monitor.process(status, metric, time);
         
-        if(!metricOpt.isPresent())
-            return Optional.absent();
-        
-        Metric metric = metricOpt.get();
-
-        java.util.Optional<AnalysisResult> result = monitor.process(storeState, metric, time);
-        if(result.isPresent()) {            
-            return toOptinal(result);
-        }else{
-        		return Optional.empty();
-        }
+        return result.isPresent() ? toOptinal(result) : Optional.empty();
     }
 
 	private Optional<AnalysisResult> toOptinal(java.util.Optional<AnalysisResult> result) {

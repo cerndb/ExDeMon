@@ -10,10 +10,6 @@ import java.util.function.Function;
 
 import ch.cern.Taggable;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.monitors.Monitor;
-import ch.cern.spark.metrics.monitors.MonitorStatusKey;
-import ch.cern.spark.metrics.value.ExceptionValue;
-import ch.cern.spark.metrics.value.Value;
 
 public class AnalysisResult implements Serializable, Taggable {
 
@@ -94,17 +90,6 @@ public class AnalysisResult implements Serializable, Taggable {
         return "AnalysisResult [analysis_timestamp=" + analysis_timestamp + ", analyzed_metric=" + analyzed_metric
                 + ", status=" + status + ", status_reason=" + status_reason + ", monitor_params=" + analysis_params
                 + "]";
-    }
-
-    public static AnalysisResult buildTimingOut(MonitorStatusKey ids, Monitor monitor, Instant time) {
-        AnalysisResult result = new AnalysisResult(); 
-        
-        Value value = new ExceptionValue("Metric has timmed out.");
-		result.setAnalyzedMetric(new Metric(time, value , ids.getMetricIDs()));
-		
-        result.addAnalysisParam("monitor.name", ids.getMonitorID());
-        
-        return result;
     }
 
     public Map<String, Object> getAnalysisParams() {

@@ -18,6 +18,29 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
 	public UpdateDefinedMetricStatusesF(Properties propertiesSourceProps) {
 		this.propertiesSourceProps = propertiesSourceProps;
 	}
+	
+    @Override
+    protected Optional<Metric> update(Time time, DefinedMetricStatuskey id, Metric metric, State<VariableStatuses> status) 
+            throws Exception {
+        DefinedMetrics.initCache(propertiesSourceProps);
+        
+        Optional<DefinedMetric> definedMetricOpt = Optional.fromNullable(DefinedMetrics.getCache().get().get(id.getDefinedMetricName()));
+        if(!definedMetricOpt.isPresent()) {
+            status.remove();
+            return Optional.empty();
+        }
+        DefinedMetric definedMetric = definedMetricOpt.get();
+            
+        VariableStatuses store = getStore(status);
+
+        definedMetric.updateStore(store, metric, id.getGroupByMetricIDs().keySet());
+        
+        Optional<Metric> newMetric = toOptional(definedMetric.generateByUpdate(store, metric, id.getGroupByMetricIDs()));
+        
+        store.update(status, time);
+        
+        return newMetric;
+    }
 
 	@Override
 	public Optional<Metric> call(Time time, DefinedMetricStatuskey id, Optional<Metric> metricOpt, State<VariableStatuses> status)
