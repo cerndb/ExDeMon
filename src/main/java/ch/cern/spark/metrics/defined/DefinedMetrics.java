@@ -42,10 +42,10 @@ public class DefinedMetrics {
 		}
 	};
 	
-	public static Stream<Metric> generate(Stream<Metric> metrics, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allkeysToRemove) throws ClassNotFoundException, IOException, ConfigurationException{
-	    Stream<DefinedMetricStatuskey> keysToRemove = null;
-        if(allkeysToRemove.isPresent())
-            keysToRemove = allkeysToRemove.get()
+	public static Stream<Metric> generate(Stream<Metric> metrics, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allStatusesToRemove) throws ClassNotFoundException, IOException, ConfigurationException{
+	    Stream<DefinedMetricStatuskey> statusesToRemove = null;
+        if(allStatusesToRemove.isPresent())
+            statusesToRemove = allStatusesToRemove.get()
                                     .filter(key -> key.getClass().isAssignableFrom(DefinedMetricStatuskey.class))
                                     .map(key -> (DefinedMetricStatuskey) key);
         
@@ -54,7 +54,7 @@ public class DefinedMetrics {
 				        DefinedMetricStatuskey.class, 
 				        VariableStatuses.class, 
 				        new ComputeDefinedMetricKeysF(propertiesSourceProps), 
-				        Optional.ofNullable(keysToRemove),
+				        Optional.ofNullable(statusesToRemove),
 				        new UpdateDefinedMetricStatusesF(propertiesSourceProps));
 		
         Stream<Metric> definedMetricsWhenBatch = statuses.getStatuses().transform((rdd, time) -> rdd.flatMap(new ComputeBatchDefineMetricsF(time, propertiesSourceProps)));

@@ -92,17 +92,17 @@ public final class Driver {
 	    
     		Stream<Metric> metrics = getMetricstream(propertiesSourceProps);
     		
-    		Optional<Stream<StatusKey>> keysToRemove = getKeysToRemoveStream();
+    		Optional<Stream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
     		
-		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, keysToRemove));
+		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, statusesToRemove));
 		metrics.cache();
 		
-		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, keysToRemove);
+		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, statusesToRemove);
 		results.cache();
 
 		analysisResultsSink.ifPresent(results::sink);
 		
-		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, keysToRemove);
+		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, statusesToRemove);
 		notifications.cache();
 		
     		notificationsSinks.stream().forEach(notifications::sink);
@@ -110,7 +110,7 @@ public final class Driver {
 		return ssc;
 	}
 
-	private Optional<Stream<StatusKey>> getKeysToRemoveStream() {
+	private Optional<Stream<StatusKey>> getStatusesToRemoveStream() {
 
         return Optional.empty();
     }

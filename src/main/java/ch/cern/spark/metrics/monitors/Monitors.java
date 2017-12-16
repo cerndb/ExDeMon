@@ -47,10 +47,10 @@ public class Monitors {
 		}
 	};
 	
-	public static Stream<AnalysisResult> analyze(Stream<Metric> metrics, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allkeysToRemove) throws Exception {
-	    Stream<MonitorStatusKey> keysToRemove = null;
-	    if(allkeysToRemove.isPresent())
-	        keysToRemove = allkeysToRemove.get()
+	public static Stream<AnalysisResult> analyze(Stream<Metric> metrics, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allStatusesToRemove) throws Exception {
+	    Stream<MonitorStatusKey> statusesToRemove = null;
+	    if(allStatusesToRemove.isPresent())
+	        statusesToRemove = allStatusesToRemove.get()
 	                                .filter(key -> key.getClass().isAssignableFrom(MonitorStatusKey.class))
 	                                .map(key -> (MonitorStatusKey) key);
 	    
@@ -58,14 +58,14 @@ public class Monitors {
                             MonitorStatusKey.class, 
                             StatusValue.class, 
                             new ComputeMonitorKeysF(propertiesSourceProps), 
-                            Optional.ofNullable(keysToRemove),
+                            Optional.ofNullable(statusesToRemove),
                             new UpdateMonitorStatusesF(propertiesSourceProps));
 	}
 
-	public static Stream<Notification> notify(Stream<AnalysisResult> results, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allkeysToRemove) throws IOException, ClassNotFoundException, ConfigurationException {
-	    Stream<NotificatorStatusKey> keysToRemove = null;
-	    if(allkeysToRemove.isPresent())
-	        keysToRemove = allkeysToRemove.get()
+	public static Stream<Notification> notify(Stream<AnalysisResult> results, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allStatusesToRemove) throws IOException, ClassNotFoundException, ConfigurationException {
+	    Stream<NotificatorStatusKey> statusesToRemove = null;
+	    if(allStatusesToRemove.isPresent())
+	        statusesToRemove = allStatusesToRemove.get()
 	                                    .filter(key -> key.getClass().isAssignableFrom(DefinedMetricStatuskey.class))
 	                                    .map(key -> (NotificatorStatusKey) key);
 	        
@@ -73,7 +73,7 @@ public class Monitors {
                             NotificatorStatusKey.class, 
                             StatusValue.class, 
                             new ComputeNotificatorKeysF(propertiesSourceProps), 
-                            Optional.ofNullable(keysToRemove),
+                            Optional.ofNullable(statusesToRemove),
                             new UpdateNotificatorStatusesF(propertiesSourceProps));
 	}
 	
