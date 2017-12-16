@@ -21,6 +21,7 @@ import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusStream;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.StatusesStorage;
+import scala.Option;
 import scala.Tuple2;
 
 public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
@@ -55,8 +56,8 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 							                .function(updateStatusFunction)
 							                .initialState(initialStates.rdd());
         
-        Optional<Duration> timeout = getStatusExpirationPeriod(input.getSparkContext());
-        if(timeout.isPresent())
+        Option<Duration> timeout = getStatusExpirationPeriod(input.getSparkContext());
+        if(timeout.isDefined())
             statusSpec = statusSpec.timeout(timeout.get());
         
         StatusStream<K, V, S, R> statusStream = StatusStream.from(input.asJavaDStream()
@@ -68,15 +69,12 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 		return statusStream;
 	}
 
-	private static Optional<Duration> getStatusExpirationPeriod(JavaSparkContext context) {
+	private static Option<Duration> getStatusExpirationPeriod(JavaSparkContext context) {
 		SparkConf conf = context.getConf();
 		
-		String valueString = conf.get(CHECKPPOINT_DURATION_PARAM);
+		Option<String> valueString = conf.getOption(CHECKPPOINT_DURATION_PARAM);
 		
-		if(valueString != null)
-		    return Optional.of(new Duration(java.time.Duration.parse(valueString).toMillis()));
-		else
-		    return Optional.empty();
+		return Option.apply(new Duration(java.time.Duration.parse(valueString.get()).toMillis()));
 	}
 
 	public JavaPairDStream<K, V> asJavaPairDStream() {
