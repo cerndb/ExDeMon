@@ -28,7 +28,7 @@ public class ActionOrValue<T> implements Serializable{
     }
 
     public boolean isRemoveAction() {
-        return action.equals(Action.REMOVE);
+        return action != null && action.equals(Action.REMOVE);
     }
     
 }

@@ -15,8 +15,11 @@ public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends Sta
         if(state.isTimingOut())
             return timingOut(time, key, state.get());
         
-        if(actionOrValue.get().isRemoveAction())
+        if(actionOrValue.get().isRemoveAction()) {
             state.remove();
+            
+            return Optional.absent();
+        }
         
         state = new TimedState<S>(state, time);
         
