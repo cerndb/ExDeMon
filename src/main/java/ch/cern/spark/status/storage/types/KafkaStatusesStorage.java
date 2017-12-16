@@ -197,6 +197,13 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		rdd.asJavaRDD().foreachPartition(new KafkaProducerFunc<K, V>(kafkaProducer, serializer, topic));
 	}
 	
+    @Override
+    public <K extends StatusKey> void remove(RDD<K> rdd) {
+        JavaRDD<Tuple2<K, StatusValue>> keyWithNulls = rdd.asJavaRDD().map(key -> new Tuple2<K, StatusValue>(key, null));
+        
+        keyWithNulls.foreachPartition(new KafkaProducerFunc<K, StatusValue>(kafkaProducer, serializer, topic));
+    }
+	
     private <K extends StatusKey, V extends StatusValue> RDD<Tuple2<K, V>> filterOnlyUpdatedStates(RDD<Tuple2<K, V>> rdd, Time time) {
 		return RDD.from(rdd.asJavaRDD().filter(tuple -> tuple._2.getUpdatedTime() == time.milliseconds() || tuple._2.getUpdatedTime() == 0));
 	}
@@ -261,11 +268,9 @@ public class KafkaStatusesStorage extends StatusesStorage {
 			
 			while(records.hasNext()) {
 				Tuple2<K, V> record = records.next();
-				
-//				System.out.println("Produce: " + topic + " " + new String(serializer.fromKey(record._1)) + "  - " + new String(serializer.fromValue(record._2)));
-				
-				Bytes key = new Bytes(serializer.fromKey(record._1));
-				Bytes value = new Bytes(serializer.fromValue(record._2));
+
+				Bytes key = record._1 != null ? new Bytes(serializer.fromKey(record._1)) : null;
+				Bytes value = record._2 != null ? new Bytes(serializer.fromValue(record._2)) : null;
 				
 				producer.send(new ProducerRecord<Bytes, Bytes>(topic, key, value));
 			}

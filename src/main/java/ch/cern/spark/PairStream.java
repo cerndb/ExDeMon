@@ -44,14 +44,14 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	public static<K extends StatusKey, V, S extends StatusValue, R> StatusStream<K, V, S, R> mapWithState(
 			Class<K> keyClass,
 			Class<S> statusClass,
-			PairStream<K, V> values,
+			PairStream<K, V> valuesStream,
 			UpdateStatusFunction<K, V, S, R> updateStatusFunction,
-			Optional<Stream<K>> removeKeys) 
+			Optional<Stream<K>> removeKeysStream) 
 					throws ClassNotFoundException, IOException, ConfigurationException {
 		
-		JavaSparkContext context = values.getSparkContext();
+		JavaSparkContext context = valuesStream.getSparkContext();
 		
-		java.util.Optional<StatusesStorage> storageOpt = getStorage(context);
+		Optional<StatusesStorage> storageOpt = getStorage(context);
 		if(!storageOpt.isPresent())
 			throw new ConfigurationException("Storgae need to be configured");
 		StatusesStorage storage = storageOpt.get();
@@ -62,15 +62,18 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
         							                .function(updateStatusFunction)
         							                .initialState(initialStates.rdd());
         
-        Option<Duration> timeout = getStatusExpirationPeriod(values.getSparkContext());
+        Option<Duration> timeout = getStatusExpirationPeriod(valuesStream.getSparkContext());
         if(timeout.isDefined())
             statusSpec = statusSpec.timeout(timeout.get());
         
-        PairStream<K, ActionOrValue<V>> actionsAndValues = values.mapToPair(tuple -> new Tuple2<K, ActionOrValue<V>>(tuple._1, new ActionOrValue<>(tuple._2)));
+        PairStream<K, ActionOrValue<V>> actionsAndValues = valuesStream.mapToPair(tuple -> new Tuple2<K, ActionOrValue<V>>(tuple._1, new ActionOrValue<>(tuple._2)));
 
-        if(removeKeys.isPresent())
+        if(removeKeysStream.isPresent()) {
             actionsAndValues = actionsAndValues.union(
-                    removeKeys.get().mapToPair(k -> new Tuple2<K, ActionOrValue<V>>(k, new ActionOrValue<>(Action.REMOVE))));
+                    removeKeysStream.get().mapToPair(k -> new Tuple2<K, ActionOrValue<V>>(k, new ActionOrValue<>(Action.REMOVE))));
+            
+            removeKeysStream.get().foreachRDD(rdd -> storage.remove(rdd));
+        }
         
         StatusStream<K, V, S, R> statusStream = StatusStream.from(actionsAndValues.asJavaDStream()
                     																	.mapToPair(pair -> pair)

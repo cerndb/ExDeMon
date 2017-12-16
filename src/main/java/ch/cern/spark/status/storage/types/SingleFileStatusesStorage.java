@@ -140,5 +140,9 @@ public class SingleFileStatusesStorage extends StatusesStorage{
 		if (fs == null)
 			fs = FileSystem.get(new Configuration());
 	}
+
+    @Override
+    public <K extends StatusKey> void remove(RDD<K> rdd) {
+    }
 	
 }

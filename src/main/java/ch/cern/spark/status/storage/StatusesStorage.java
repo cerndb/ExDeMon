@@ -36,5 +36,7 @@ public abstract class StatusesStorage extends Component{
 	}
 
 	public abstract JavaRDD<Tuple2<StatusKey, StatusValue>> load(JavaSparkContext context) throws IOException, ConfigurationException;
+
+    public abstract<K extends StatusKey> void remove(RDD<K> rdd);
 	
 }
