@@ -17,6 +17,7 @@ import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.SparkConf;
+import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.metrics.monitors.MonitorStatusKey;
 import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
@@ -35,6 +36,7 @@ public class StatusesManagerCLI {
     private String defined_metric_id;
     private String monitor_id;
     private String notificator_id;
+    private boolean printJSON;
     
     public StatusesManagerCLI() {
         SparkConf sparkConf = new SparkConf();
@@ -58,7 +60,18 @@ public class StatusesManagerCLI {
         
         JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = manager.load();
         
-        statuses.foreach(status -> System.out.println(status));
+        manager.print(statuses);
+    }
+
+    private void print(JavaRDD<Tuple2<StatusKey, StatusValue>> statuses) {
+        JavaRDD<String> toPrint = null;
+        
+        if(printJSON)
+            toPrint = statuses.map(status -> JSONParser.parse(status).toString());
+        else
+            toPrint = statuses.map(status -> status.toString());
+        
+        toPrint.foreach(System.out::println);
     }
 
     public<K extends StatusKey> JavaRDD<Tuple2<K, StatusValue>> load() throws IOException, ConfigurationException {
@@ -87,6 +100,8 @@ public class StatusesManagerCLI {
         options.addOption(new Option("dID", "definedMetric", true, "filter by defined metric id"));
         options.addOption(new Option("mID", "monitor", true, "filter by monitor id"));
         options.addOption(new Option("nID", "notificator", true, "filter by notificator id"));
+        
+        options.addOption(new Option("json", "printJSON", false, "print as JSON"));
         
         CommandLineParser parser = new BasicParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -121,6 +136,8 @@ public class StatusesManagerCLI {
             monitor_id = cmd.getOptionValue("monitor");
         if(cmd.hasOption("notificator"))
             notificator_id = cmd.getOptionValue("notificator");
+        
+        printJSON = cmd.hasOption("printJSON");
     }
     
     public void close(){
@@ -128,5 +145,5 @@ public class StatusesManagerCLI {
             context.stop();
         context = null;
     }
-
+    
 }
