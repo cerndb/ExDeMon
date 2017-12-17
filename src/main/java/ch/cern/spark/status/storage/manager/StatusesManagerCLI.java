@@ -29,7 +29,12 @@ public class StatusesManagerCLI {
     
     private StatusesStorage storage;
     private JavaSparkContext context;
+    
     private Class<? extends StatusKey> keyClass;
+    
+    private String defined_metric_id;
+    private String monitor_id;
+    private String notificator_id;
     
     public StatusesManagerCLI() {
         SparkConf sparkConf = new SparkConf();
@@ -60,7 +65,12 @@ public class StatusesManagerCLI {
         @SuppressWarnings("unchecked")
         Class<K> keyClass = (Class<K>) this.keyClass;
         
-        return storage.load(context, keyClass, null);
+        JavaRDD<Tuple2<K, StatusValue>> allStatuses = storage.load(context, keyClass, null);
+        
+        return allStatuses
+                    .filter(new DefinedMetricFilter<K>(defined_metric_id))
+                    .filter(new MonitorFilter<K>(monitor_id))
+                    .filter(new NotificatorFilter<K>(notificator_id));
     }
 
     public static CommandLine parseCommand(String[] args) {
@@ -70,9 +80,13 @@ public class StatusesManagerCLI {
         brokers.setRequired(true);
         options.addOption(brokers);
         
-        options.addOption(new Option("d", "define-metric", true, "filter by defined metric id"));
-        options.addOption(new Option("m", "monitor", true, "filter by monitor id"));
-        options.addOption(new Option("n", "notificator", true, "filter by notificator id"));
+        options.addOption(new Option("d", "definedMetrics", false, "filter by defined metrics"));
+        options.addOption(new Option("m", "monitors", false, "filter by monitors"));
+        options.addOption(new Option("n", "notificators", false, "filter by notificators"));
+        
+        options.addOption(new Option("dID", "definedMetric", true, "filter by defined metric id"));
+        options.addOption(new Option("mID", "monitor", true, "filter by monitor id"));
+        options.addOption(new Option("nID", "notificator", true, "filter by notificator id"));
         
         CommandLineParser parser = new BasicParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -92,14 +106,21 @@ public class StatusesManagerCLI {
     protected void config(Properties properties, CommandLine cmd) throws ConfigurationException  {
         storage = ComponentManager.build(Type.STATUS_STORAGE, properties.getSubset(StatusesStorage.STATUS_STORAGE_PARAM));
         
-        if(cmd.hasOption("define-metric"))
+        if(cmd.hasOption("definedMetrics"))
             keyClass = DefinedMetricStatuskey.class;
-        else if(cmd.hasOption("monitor"))
+        else if(cmd.hasOption("monitors"))
             keyClass = MonitorStatusKey.class;
-        else if(cmd.hasOption("notificator"))
+        else if(cmd.hasOption("notificators"))
             keyClass = NotificatorStatusKey.class;
         else
             keyClass = null;
+        
+        if(cmd.hasOption("definedMetric"))
+            defined_metric_id = cmd.getOptionValue("definedMetric");
+        if(cmd.hasOption("monitor"))
+            monitor_id = cmd.getOptionValue("monitor");
+        if(cmd.hasOption("notificator"))
+            notificator_id = cmd.getOptionValue("notificator");
     }
 
 }
