@@ -122,5 +122,11 @@ public class StatusesManagerCLI {
         if(cmd.hasOption("notificator"))
             notificator_id = cmd.getOptionValue("notificator");
     }
+    
+    public void close(){
+        if(context != null)
+            context.stop();
+        context = null;
+    }
 
 }

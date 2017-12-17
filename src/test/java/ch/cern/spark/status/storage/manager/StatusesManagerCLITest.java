@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.spark.streaming.kafka010.KafkaTestUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -207,6 +208,11 @@ public class StatusesManagerCLITest {
         
         producer.send(new ProducerRecord<String, String>(topic, keyS, valueS));
         producer.flush();
+    }
+    
+    @After
+    public void shutDown() {
+        manager.close();
     }
 
 }
