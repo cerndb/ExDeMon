@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.cli.CommandLine;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -14,11 +15,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.properties.ConfigurationException;
+import ch.cern.properties.Properties;
 import ch.cern.spark.metrics.monitors.MonitorStatusKey;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.TestStatus;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
+import ch.cern.spark.status.storage.StatusesStorage;
 
 public class StatusesManagerCLITest {
     
@@ -27,6 +30,7 @@ public class StatusesManagerCLITest {
     private StatusesManagerCLI manager;
     private KafkaProducer<String, String> producer;
     private JSONStatusSerializer serializer;
+    private Properties properties;
     
     @Before
     public void setUp() throws Exception {
@@ -44,23 +48,30 @@ public class StatusesManagerCLITest {
         configs.put("value.serializer", StringSerializer.class);
         producer = new KafkaProducer<>(configs);
         
+        properties = new Properties();
+        properties.setProperty(StatusesStorage.STATUS_STORAGE_PARAM + ".type", "kafka");
+        properties.setProperty(StatusesStorage.STATUS_STORAGE_PARAM + ".topic", topic);
+        properties.setProperty(StatusesStorage.STATUS_STORAGE_PARAM + ".consumer.bootstrap.servers", kafkaTestUtils.brokerAddress());
+        properties.setProperty(StatusesStorage.STATUS_STORAGE_PARAM + ".producer.bootstrap.servers", kafkaTestUtils.brokerAddress());
+        properties.setProperty("", kafkaTestUtils.brokerAddress());
+        
         serializer = new JSONStatusSerializer();
     }
     
     @Test
     public void emptyTopic() throws ConfigurationException, IOException {
-        String[] args = ("-brokers "+kafkaTestUtils.brokerAddress()+" "
-                       + "-topic " + topic + " ").split(" ");
-        manager.config(args);
+        String[] args = ("-conf /path/").split(" ");
+        CommandLine cmd = StatusesManagerCLI.parseCommand(args);
+        manager.config(properties, cmd);
         
         assertEquals(0, manager.load().count());
     }
     
     @Test
     public void returnAll() throws ConfigurationException, IOException {
-        String[] args = ("-brokers "+kafkaTestUtils.brokerAddress()+" "
-                       + "-topic " + topic + " ").split(" ");
-        manager.config(args);
+        String[] args = ("-conf /path/").split(" ");
+        CommandLine cmd = StatusesManagerCLI.parseCommand(args);
+        manager.config(properties, cmd);
         
         sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
         
@@ -68,8 +79,8 @@ public class StatusesManagerCLITest {
     }
 
     private void sendMessage(StatusKey key, StatusValue value) throws IOException {
-        String keyS = new String(serializer.fromKey(key));
-        String valueS = new String(serializer.fromValue(value));
+        String keyS = key != null ? new String(serializer.fromKey(key)) : null;
+        String valueS = value != null ? new String(serializer.fromValue(value)) : null;
         
         producer.send(new ProducerRecord<String, String>(topic, keyS, valueS));
         producer.flush();

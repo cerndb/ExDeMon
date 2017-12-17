@@ -12,6 +12,8 @@ import org.apache.commons.cli.ParseException;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
+import ch.cern.components.Component.Type;
+import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.SparkConf;
@@ -20,18 +22,16 @@ import ch.cern.spark.metrics.monitors.MonitorStatusKey;
 import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.types.KafkaStatusesStorage;
+import ch.cern.spark.status.storage.StatusesStorage;
 import scala.Tuple2;
 
 public class StatusesManagerCLI {
     
-    private KafkaStatusesStorage storage;
+    private StatusesStorage storage;
     private JavaSparkContext context;
     private Class<? extends StatusKey> keyClass;
     
     public StatusesManagerCLI() {
-        storage = new KafkaStatusesStorage();
-        
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("KafkaStatusesManagement");
         sparkConf.setMaster("local[2]");
@@ -43,7 +43,11 @@ public class StatusesManagerCLI {
     
     public static void main(String[] args) throws ConfigurationException, IOException {
         StatusesManagerCLI manager = new StatusesManagerCLI();
-        manager.config(args);
+        CommandLine cmd = parseCommand(args);
+        
+        Properties properties = Properties.fromFile(cmd.getOptionValue(""));
+        
+        manager.config(properties, cmd);
         
         JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = manager.load();
         
@@ -57,20 +61,16 @@ public class StatusesManagerCLI {
         return storage.load(context, keyClass, null);
     }
 
-    private CommandLine parseCommand(String[] args) {
+    public static CommandLine parseCommand(String[] args) {
         Options options = new Options();
         
-        Option brokers = new Option("b", "brokers", true, "list of brokers host:port,host:port");
+        Option brokers = new Option("c", "conf", true, "path to configuration file");
         brokers.setRequired(true);
         options.addOption(brokers);
         
-        Option topic = new Option("t", "topic", true, "name of status topic");
-        topic.setRequired(true);
-        options.addOption(topic);
-        
-        options.addOption(new Option("d", "define-metrics", false, "manage defined metrics"));
-        options.addOption(new Option("m", "monitors", false, "manage monitors"));
-        options.addOption(new Option("n", "notificators", false, "manage notificators"));
+        options.addOption(new Option("d", "define-metric", true, "filter by defined metric id"));
+        options.addOption(new Option("m", "monitor", true, "filter by monitor id"));
+        options.addOption(new Option("n", "notificator", true, "filter by notificator id"));
         
         CommandLineParser parser = new BasicParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -88,20 +88,14 @@ public class StatusesManagerCLI {
         }
     }
 
-    protected void config(String[] args) throws ConfigurationException  {
-        CommandLine cmd = parseCommand(args);
+    protected void config(Properties properties, CommandLine cmd) throws ConfigurationException  {
+        storage = ComponentManager.build(Type.STATUS_STORAGE, properties.getSubset(StatusesStorage.STATUS_STORAGE_PARAM));
         
-        Properties properties = new Properties();
-        properties.setProperty("topic", cmd.getOptionValue("topic"));
-        properties.setProperty("producer.bootstrap.servers", cmd.getOptionValue("brokers"));
-        properties.setProperty("consumer.bootstrap.servers", cmd.getOptionValue("brokers"));
-        storage.config(properties);
-        
-        if(cmd.hasOption("define-metrics"))
+        if(cmd.hasOption("define-metric"))
             keyClass = DefinedMetricStatuskey.class;
-        else if(cmd.hasOption("monitors"))
+        else if(cmd.hasOption("monitor"))
             keyClass = MonitorStatusKey.class;
-        else if(cmd.hasOption("notificators"))
+        else if(cmd.hasOption("notificator"))
             keyClass = NotificatorStatusKey.class;
         else
             keyClass = null;
