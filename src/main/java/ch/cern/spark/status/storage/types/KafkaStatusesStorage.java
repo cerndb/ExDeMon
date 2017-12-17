@@ -178,7 +178,8 @@ public class KafkaStatusesStorage extends StatusesStorage {
 									}
 									
 									return new Tuple2<ByteArray, ByteArray>(key, latestValue._2);
-								});
+								})
+								.filter(pair -> pair._2 != null);
 	}
 	
 	private JavaRDD<Tuple2<StatusKey, StatusValue>> parseRecords(JavaRDD<Tuple2<ByteArray, ByteArray>> latestRecords) {
