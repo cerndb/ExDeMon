@@ -60,22 +60,25 @@ public class StatusesManagerCLITest {
     
     @Test
     public void emptyTopic() throws ConfigurationException, IOException {
-        String[] args = ("-conf /path/").split(" ");
-        CommandLine cmd = StatusesManagerCLI.parseCommand(args);
-        manager.config(properties, cmd);
+        cmd("-conf /path/");
         
         assertEquals(0, manager.load().count());
     }
     
     @Test
     public void returnAll() throws ConfigurationException, IOException {
-        String[] args = ("-conf /path/").split(" ");
-        CommandLine cmd = StatusesManagerCLI.parseCommand(args);
-        manager.config(properties, cmd);
+        cmd("-conf /path/");
         
         sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
         
         assertEquals(1, manager.load().count());
+    }
+
+    private void cmd(String cmdString) throws ConfigurationException {
+        String[] args = (cmdString).split(" ");
+        CommandLine cmd = StatusesManagerCLI.parseCommand(args);
+        
+        manager.config(properties, cmd);
     }
 
     private void sendMessage(StatusKey key, StatusValue value) throws IOException {

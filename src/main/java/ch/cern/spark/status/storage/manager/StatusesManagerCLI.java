@@ -42,11 +42,13 @@ public class StatusesManagerCLI {
     }
     
     public static void main(String[] args) throws ConfigurationException, IOException {
-        StatusesManagerCLI manager = new StatusesManagerCLI();
         CommandLine cmd = parseCommand(args);
+        if(cmd == null)
+            return;
         
         Properties properties = Properties.fromFile(cmd.getOptionValue(""));
         
+        StatusesManagerCLI manager = new StatusesManagerCLI();
         manager.config(properties, cmd);
         
         JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = manager.load();
@@ -83,7 +85,6 @@ public class StatusesManagerCLI {
             System.out.println(e.getMessage());
             formatter.printHelp("kafka-statuses-manager", options);
 
-            System.exit(1);
             return null;
         }
     }
