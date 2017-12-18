@@ -9,14 +9,13 @@ import org.apache.log4j.Logger;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.receiver.Receiver;
 
-import ch.cern.spark.metrics.Driver;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 
 public class StatusesKeyReceiver extends Receiver<StatusKey> {
 
     private static final long serialVersionUID = -3082306224466741384L;
     
-    private transient final static Logger LOG = Logger.getLogger(Driver.class.getName());
+    private transient final static Logger LOG = Logger.getLogger(StatusesKeyReceiver.class.getName());
 
     private String host;
     private int port;
@@ -41,7 +40,7 @@ public class StatusesKeyReceiver extends Receiver<StatusKey> {
             public void run() {
                 listen();
             }
-        }.start();;
+        }.start();
     }
     
     private void listen() {
@@ -61,6 +60,8 @@ public class StatusesKeyReceiver extends Receiver<StatusKey> {
         while ((line = reader.readLine()) != null) {
             try {
                 StatusKey key = derializer.toKey(line.getBytes());
+                
+                LOG.info("Received key to remove: " + line);
                 
                 store(key);
             } catch(Exception e) {

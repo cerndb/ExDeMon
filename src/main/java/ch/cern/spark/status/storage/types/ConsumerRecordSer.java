@@ -17,8 +17,12 @@ public class ConsumerRecordSer implements Serializable{
 
     public ConsumerRecordSer(ConsumerRecord<Bytes, Bytes> consumerRecord) {
         this.offset = consumerRecord.offset();
-        this.key = new ByteArray(consumerRecord.key().get());
-        this.value = new ByteArray(consumerRecord.value().get());
+        
+        if(consumerRecord.key() != null)
+            this.key = new ByteArray(consumerRecord.key().get());
+        
+        if(consumerRecord.value() != null)
+            this.value = new ByteArray(consumerRecord.value().get());
     }
 
     public long offset() {

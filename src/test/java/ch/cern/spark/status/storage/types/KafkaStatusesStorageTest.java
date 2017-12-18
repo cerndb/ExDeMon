@@ -188,6 +188,51 @@ public class KafkaStatusesStorageTest {
 		assertEquals(expectedList, outputList);
 	}
 	
+    @Test
+    public void shouldNotGetLastRecordWhenValueNull() throws Exception {
+        KafkaStatusesStorage storage = new KafkaStatusesStorage();
+
+        Properties properties = new Properties();
+        properties.setProperty("topic", topic);
+        properties.setProperty("producer.bootstrap.servers", kafkaTestUtils.brokerAddress());
+        properties.setProperty("consumer.bootstrap.servers", kafkaTestUtils.brokerAddress());
+        properties.setProperty("consumer.group.id", "testing3");
+        storage.config(properties);
+
+        List<Tuple2<DefinedMetricStatuskey, VariableStatuses>> inputList = new LinkedList<>();
+
+        DefinedMetricStatuskey id1 = new DefinedMetricStatuskey("df1", new HashMap<>());
+
+        VariableStatuses varStatuses = new VariableStatuses();
+        StatusValue status = new TestStatus(11);
+        varStatuses.put("var1-id1", status);
+        inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id1, varStatuses));
+
+        RDD<Tuple2<DefinedMetricStatuskey, VariableStatuses>> inputRDD = RDD.from(context.parallelize(inputList));
+        storage.save(inputRDD, new Time(0));
+        inputList = new LinkedList<>();
+
+        varStatuses = new VariableStatuses();
+        status = new TestStatus(12);
+        varStatuses.put("var2-id1", status);
+        inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id1, varStatuses));
+
+        inputRDD = RDD.from(context.parallelize(inputList));
+        storage.save(inputRDD, new Time(0));
+        inputList = new LinkedList<>();
+
+        inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id1, null));
+
+        inputRDD = RDD.from(context.parallelize(inputList));
+        storage.save(inputRDD, new Time(0));
+
+        JavaRDD<Tuple2<DefinedMetricStatuskey, VariableStatuses>> outputRDD = storage.load(context,
+                DefinedMetricStatuskey.class, VariableStatuses.class);
+        List<Tuple2<DefinedMetricStatuskey, VariableStatuses>> outputList = outputRDD.collect();
+        
+        assertEquals(0, outputList.size());
+    }
+	
 	@Test
 	public void shouldSaveOnlyRecordsOfBatchTime() throws Exception {
 		KafkaStatusesStorage storage = new KafkaStatusesStorage();
