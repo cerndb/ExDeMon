@@ -24,7 +24,7 @@ public class UpdateDefinedMetricStatusesF extends UpdateStatusFunction<DefinedMe
             throws Exception {
         DefinedMetrics.initCache(propertiesSourceProps);
         
-        Optional<DefinedMetric> definedMetricOpt = Optional.of(DefinedMetrics.getCache().get().get(id.getDefinedMetricName()));
+        Optional<DefinedMetric> definedMetricOpt = Optional.of(DefinedMetrics.getCache().get().get(id.getID()));
         if(!definedMetricOpt.isPresent()) {
             status.remove();
             return Optional.empty();

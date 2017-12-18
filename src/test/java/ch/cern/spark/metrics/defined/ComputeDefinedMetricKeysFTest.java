@@ -43,12 +43,12 @@ public class ComputeDefinedMetricKeysFTest {
 		result = function.call(metric);
 		assertTrue(result.hasNext());
 		Tuple2<DefinedMetricStatuskey, Metric> tuple = result.next();
-		assertEquals("defM1", tuple._1.getDefinedMetricName());
+		assertEquals("defM1", tuple._1.getID());
 		assertEquals(1, tuple._1.getGroupByMetricIDs().size());
 		assertEquals("prod-machine1", tuple._1.getGroupByMetricIDs().get("INSTANCE_NAME"));
 		assertSame(metric, tuple._2);
 		tuple = result.next();
-		assertEquals("defM2", tuple._1.getDefinedMetricName());
+		assertEquals("defM2", tuple._1.getID());
 		assertEquals(1, tuple._1.getGroupByMetricIDs().size());
 		assertEquals("prod-machine1", tuple._1.getGroupByMetricIDs().get("INSTANCE_NAME"));
 		assertSame(metric, tuple._2);
@@ -63,12 +63,12 @@ public class ComputeDefinedMetricKeysFTest {
 		result = function.call(metric);
 		assertTrue(result.hasNext());
 		tuple = result.next();
-		assertEquals("defM1", tuple._1.getDefinedMetricName());
+		assertEquals("defM1", tuple._1.getID());
 		assertEquals(1, tuple._1.getGroupByMetricIDs().size());
 		assertEquals("prod-machine2", tuple._1.getGroupByMetricIDs().get("INSTANCE_NAME"));
 		assertSame(metric, tuple._2);
 		tuple = result.next();
-		assertEquals("defM2", tuple._1.getDefinedMetricName());
+		assertEquals("defM2", tuple._1.getID());
 		assertEquals(1, tuple._1.getGroupByMetricIDs().size());
 		assertEquals("prod-machine2", tuple._1.getGroupByMetricIDs().get("INSTANCE_NAME"));
 		assertSame(metric, tuple._2);
@@ -103,7 +103,7 @@ public class ComputeDefinedMetricKeysFTest {
 		result = function.call(metric);
 		assertTrue(result.hasNext());
 		Tuple2<DefinedMetricStatuskey, Metric> tuple = result.next();
-		assertEquals("defM2", tuple._1.getDefinedMetricName());
+		assertEquals("defM2", tuple._1.getID());
 		assertFalse(result.hasNext());
 	}
 	
@@ -120,7 +120,7 @@ public class ComputeDefinedMetricKeysFTest {
 		Iterator<Tuple2<DefinedMetricStatuskey, Metric>> result = function.call(metric);
 		assertTrue(result.hasNext());
 		Tuple2<DefinedMetricStatuskey, Metric> tuple = result.next();
-		assertEquals("defMAll", tuple._1.getDefinedMetricName());
+		assertEquals("defMAll", tuple._1.getID());
 		assertEquals(3, tuple._1.getGroupByMetricIDs().size());
 		assertEquals("prod-machine1", tuple._1.getGroupByMetricIDs().get("INSTANCE_NAME"));
 		assertEquals("CPU Usage Per Sec", tuple._1.getGroupByMetricIDs().get("METRIC_NAME"));
@@ -178,7 +178,7 @@ public class ComputeDefinedMetricKeysFTest {
 		Iterator<Tuple2<DefinedMetricStatuskey, Metric>> result = function.call(metric);
 		assertTrue(result.hasNext());
 		Tuple2<DefinedMetricStatuskey, Metric> tuple = result.next();
-		assertEquals("defMNone", tuple._1.getDefinedMetricName());
+		assertEquals("defMNone", tuple._1.getID());
 		assertEquals(0, tuple._1.getGroupByMetricIDs().size());
 		assertFalse(result.hasNext());
 	}

@@ -1,6 +1,7 @@
 package ch.cern.spark.status.storage.manager;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -18,9 +19,6 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.json.JSONParser;
-import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
-import ch.cern.spark.metrics.monitors.MonitorStatusKey;
-import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.StatusesStorage;
@@ -30,12 +28,9 @@ public class StatusesManagerCLI {
     
     private StatusesStorage storage;
     private JavaSparkContext context;
-    
-    private Class<? extends StatusKey> keyClass;
-    
-    private String defined_metric_id;
-    private String monitor_id;
-    private String notificator_id;
+        
+    private String filter_by_id;
+
     private boolean printJSON;
     
     public StatusesManagerCLI() {
@@ -53,7 +48,7 @@ public class StatusesManagerCLI {
         if(cmd == null)
             return;
         
-        Properties properties = Properties.fromFile(cmd.getOptionValue(""));
+        Properties properties = Properties.fromFile(cmd.getOptionValue("conf"));
         
         StatusesManagerCLI manager = new StatusesManagerCLI();
         manager.config(properties, cmd);
@@ -71,19 +66,20 @@ public class StatusesManagerCLI {
         else
             toPrint = statuses.map(status -> status.toString());
         
-        toPrint.foreach(System.out::println);
+        List<String> result = toPrint.collect();
+        
+        for (String string : result) {
+            System.out.println(string);
+        }
     }
 
-    public<K extends StatusKey> JavaRDD<Tuple2<K, StatusValue>> load() throws IOException, ConfigurationException {
-        @SuppressWarnings("unchecked")
-        Class<K> keyClass = (Class<K>) this.keyClass;
+    public JavaRDD<Tuple2<StatusKey, StatusValue>> load() throws IOException, ConfigurationException {
+        JavaRDD<Tuple2<StatusKey, StatusValue>> allStatuses = storage.load(context);
         
-        JavaRDD<Tuple2<K, StatusValue>> allStatuses = storage.load(context, keyClass, null);
-        
-        return allStatuses
-                    .filter(new DefinedMetricFilter<K>(defined_metric_id))
-                    .filter(new MonitorFilter<K>(monitor_id))
-                    .filter(new NotificatorFilter<K>(notificator_id));
+        if(filter_by_id == null)
+            return allStatuses;
+        else
+            return allStatuses.filter(new IDStatusKeyFilter(filter_by_id));
     }
 
     public static CommandLine parseCommand(String[] args) {
@@ -93,13 +89,7 @@ public class StatusesManagerCLI {
         brokers.setRequired(true);
         options.addOption(brokers);
         
-        options.addOption(new Option("d", "definedMetrics", false, "filter by defined metrics"));
-        options.addOption(new Option("m", "monitors", false, "filter by monitors"));
-        options.addOption(new Option("n", "notificators", false, "filter by notificators"));
-        
-        options.addOption(new Option("dID", "definedMetric", true, "filter by defined metric id"));
-        options.addOption(new Option("mID", "monitor", true, "filter by monitor id"));
-        options.addOption(new Option("nID", "notificator", true, "filter by notificator id"));
+        options.addOption(new Option("id", "id", true, "filter by status key id"));
         
         options.addOption(new Option("json", "printJSON", false, "print as JSON"));
         
@@ -121,21 +111,7 @@ public class StatusesManagerCLI {
     protected void config(Properties properties, CommandLine cmd) throws ConfigurationException  {
         storage = ComponentManager.build(Type.STATUS_STORAGE, properties.getSubset(StatusesStorage.STATUS_STORAGE_PARAM));
         
-        if(cmd.hasOption("definedMetrics"))
-            keyClass = DefinedMetricStatuskey.class;
-        else if(cmd.hasOption("monitors"))
-            keyClass = MonitorStatusKey.class;
-        else if(cmd.hasOption("notificators"))
-            keyClass = NotificatorStatusKey.class;
-        else
-            keyClass = null;
         
-        if(cmd.hasOption("definedMetric"))
-            defined_metric_id = cmd.getOptionValue("definedMetric");
-        if(cmd.hasOption("monitor"))
-            monitor_id = cmd.getOptionValue("monitor");
-        if(cmd.hasOption("notificator"))
-            notificator_id = cmd.getOptionValue("notificator");
         
         printJSON = cmd.hasOption("printJSON");
     }

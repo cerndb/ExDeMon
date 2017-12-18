@@ -2,11 +2,11 @@ package ch.cern.spark.metrics.notificator;
 
 import java.util.Map;
 
-import ch.cern.spark.status.StatusKey;
+import ch.cern.spark.status.IDStatusKey;
 import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
 
 @JSONSerializationClassNameAlias("notificator-key")
-public class NotificatorStatusKey implements StatusKey{
+public class NotificatorStatusKey implements IDStatusKey{
 
     private static final long serialVersionUID = -4289498306145284346L;
 
@@ -32,6 +32,11 @@ public class NotificatorStatusKey implements StatusKey{
     
     public Map<String, String> getMetricIDs(){
         return metric_ids;
+    }
+    
+    @Override
+    public String getID() {
+        return monitor + ":" + id;
     }
 
     @Override

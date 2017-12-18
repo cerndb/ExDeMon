@@ -2,11 +2,11 @@ package ch.cern.spark.metrics.defined;
 
 import java.util.Map;
 
-import ch.cern.spark.status.StatusKey;
+import ch.cern.spark.status.IDStatusKey;
 import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
 
 @JSONSerializationClassNameAlias("defined-metric-key")
-public class DefinedMetricStatuskey implements StatusKey {
+public class DefinedMetricStatuskey implements IDStatusKey {
 
 	private static final long serialVersionUID = 2992810464329306975L;
 
@@ -19,7 +19,7 @@ public class DefinedMetricStatuskey implements StatusKey {
 		this.metric_ids = metric_ids;
 	}
 
-	public String getDefinedMetricName() {
+	public String getID() {
 		return id;
 	}
 

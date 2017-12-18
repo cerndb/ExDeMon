@@ -25,7 +25,7 @@ public class UpdateMonitorStatusesF extends UpdateStatusFunction<MonitorStatusKe
             throws Exception {
         Monitors.initCache(propertiesSourceProperties);
         
-        Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getMonitorID()));
+        Optional<Monitor> monitorOpt = Optional.ofNullable(Monitors.getCache().get().get(ids.getID()));
         if(!monitorOpt.isPresent()) {
             status.remove();
             

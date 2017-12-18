@@ -36,7 +36,7 @@ public class ComputeBatchDefineMetricsF implements FlatMapFunction<Tuple2<Define
         DefinedMetricStatuskey ids = pair._1;
         VariableStatuses store = pair._2;
         
-        Optional<DefinedMetric> definedMetricOpt = Optional.ofNullable(DefinedMetrics.getCache().get().get(ids.getDefinedMetricName()));
+        Optional<DefinedMetric> definedMetricOpt = Optional.ofNullable(DefinedMetrics.getCache().get().get(ids.getID()));
         if(!definedMetricOpt.isPresent())
             return result.iterator();
         DefinedMetric definedMetric = definedMetricOpt.get();
