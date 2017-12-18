@@ -75,6 +75,10 @@ public class NotificatorStatusKey implements IDStatusKey{
             return false;
         return true;
     }
-    
+
+    @Override
+    public String toString() {
+        return "NotificatorStatusKey [id=" + id + ", monitor=" + monitor + ", metric_ids=" + metric_ids + "]";
+    }
     
 }

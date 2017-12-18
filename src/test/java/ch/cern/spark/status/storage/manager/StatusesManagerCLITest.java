@@ -65,7 +65,7 @@ public class StatusesManagerCLITest {
     public void emptyTopic() throws ConfigurationException, IOException {
         cmd("-conf /path/");
         
-        assertEquals(0, manager.load().count());
+        assertEquals(0, manager.loadAndFilter().count());
     }
     
     @Test
@@ -79,7 +79,7 @@ public class StatusesManagerCLITest {
         sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
         sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
         
-        assertEquals(6, manager.load().count());
+        assertEquals(6, manager.loadAndFilter().count());
     }
     
     @Test
@@ -95,7 +95,7 @@ public class StatusesManagerCLITest {
         sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
         sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
         
-        assertEquals(2, manager.load().count());
+        assertEquals(2, manager.loadAndFilter().count());
     }
     
     @Test
@@ -111,7 +111,7 @@ public class StatusesManagerCLITest {
         sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
         sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
         
-        assertEquals(2, manager.load().count());
+        assertEquals(2, manager.loadAndFilter().count());
     }
     
     @Test
@@ -127,7 +127,7 @@ public class StatusesManagerCLITest {
         sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
         sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
         
-        assertEquals(1, manager.load().count());
+        assertEquals(1, manager.loadAndFilter().count());
     }
 
     private void cmd(String cmdString) throws ConfigurationException {
