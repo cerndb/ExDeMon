@@ -28,6 +28,8 @@ To run this applications you can use the following command:
 
 ```
 $SPARK_HOME/bin/spark-submit \
+			--repositories https://repository.cloudera.com/artifactory/cloudera-repos/ \
+			--packages org.apache.spark:spark-streaming-kafka-0-10_2.11:2.1.0,org.reflections:reflections:0.9.9 \
 			--class ch.cern.spark.metrics.Driver \
 			target/metrics-monitor-VERSION.jar \
 			<path_to_conf_file>
