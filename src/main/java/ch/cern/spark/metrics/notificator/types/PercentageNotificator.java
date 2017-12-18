@@ -19,7 +19,7 @@ import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.TimeUtils;
 
 @RegisterComponent("percentage")
@@ -182,7 +182,7 @@ public class PercentageNotificator extends Notificator implements HasStatus {
         			|| hitTime.equals(oldestTime) || hitTime.equals(currentTime);
     }
 
-    @JSONSerializationClassNameAlias("percentage-notificator")
+    @ClassNameAlias("percentage-notificator")
     public static class Status_ extends StatusValue{
 
 		private static final long serialVersionUID = -1907347033980904180L;

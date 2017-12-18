@@ -30,7 +30,8 @@ public class StatusesManagerCLI {
     private JavaSparkContext context;
         
     private String filter_by_id;
-
+    private String filter_by_fqcn;
+    
     private boolean printJSON;
     
     public StatusesManagerCLI() {
@@ -74,12 +75,15 @@ public class StatusesManagerCLI {
     }
 
     public JavaRDD<Tuple2<StatusKey, StatusValue>> load() throws IOException, ConfigurationException {
-        JavaRDD<Tuple2<StatusKey, StatusValue>> allStatuses = storage.load(context);
+        JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = storage.load(context);
         
-        if(filter_by_id == null)
-            return allStatuses;
-        else
-            return allStatuses.filter(new IDStatusKeyFilter(filter_by_id));
+        if(filter_by_id != null)
+            statuses = statuses.filter(new IDStatusKeyFilter(filter_by_id));
+        
+        if(filter_by_fqcn != null)
+            statuses = statuses.filter(new ClassNameStatusKeyFilter(filter_by_fqcn));
+        
+        return statuses;
     }
 
     public static CommandLine parseCommand(String[] args) {
@@ -90,6 +94,7 @@ public class StatusesManagerCLI {
         options.addOption(brokers);
         
         options.addOption(new Option("id", "id", true, "filter by status key id"));
+        options.addOption(new Option("fqcn", "fqcn", true, "filter by FQCN or alias"));
         
         options.addOption(new Option("json", "printJSON", false, "print as JSON"));
         
@@ -111,7 +116,8 @@ public class StatusesManagerCLI {
     protected void config(Properties properties, CommandLine cmd) throws ConfigurationException  {
         storage = ComponentManager.build(Type.STATUS_STORAGE, properties.getSubset(StatusesStorage.STATUS_STORAGE_PARAM));
         
-        
+        filter_by_id = cmd.getOptionValue("id");
+        filter_by_fqcn = cmd.getOptionValue("fqcn");
         
         printJSON = cmd.hasOption("printJSON");
     }

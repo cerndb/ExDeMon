@@ -18,7 +18,7 @@ import ch.cern.spark.metrics.notificator.types.ConstantNotificator;
 import ch.cern.spark.metrics.results.AnalysisResult;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 
 public class InErrorMonitor extends Monitor {
 
@@ -115,7 +115,7 @@ public class InErrorMonitor extends Monitor {
 			return new HashMap<>();
 	}
 	
-	@JSONSerializationClassNameAlias("in-error-notificator")
+	@ClassNameAlias("in-error-notificator")
 	private static class Status_ extends StatusValue {
 
 		private static final long serialVersionUID = -6991497562392525744L;

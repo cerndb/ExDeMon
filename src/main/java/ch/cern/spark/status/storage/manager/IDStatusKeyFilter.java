@@ -22,12 +22,14 @@ public class IDStatusKeyFilter implements Function<Tuple2<StatusKey, StatusValue
         if(filter_by_id == null)
             return true;
         
-        if(!tuple._1.getClass().isAssignableFrom(IDStatusKey.class))
+        StatusKey key = tuple._1;
+        
+        if(!(key instanceof IDStatusKey))
             return false;
         
-        IDStatusKey key = (IDStatusKey) tuple._1;
+        IDStatusKey idKey = (IDStatusKey) key;
         
-        return key.getID().equals(filter_by_id);
+        return idKey.getID().equals(filter_by_id);
     }
 
 }

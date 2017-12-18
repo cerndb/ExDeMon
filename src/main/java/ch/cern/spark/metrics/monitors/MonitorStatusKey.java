@@ -3,9 +3,9 @@ package ch.cern.spark.metrics.monitors;
 import java.util.Map;
 
 import ch.cern.spark.status.IDStatusKey;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 
-@JSONSerializationClassNameAlias("monitor-key")
+@ClassNameAlias("monitor-key")
 public class MonitorStatusKey implements IDStatusKey{
     
     private static final long serialVersionUID = -7288054142035095969L;

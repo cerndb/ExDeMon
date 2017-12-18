@@ -15,7 +15,7 @@ import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 
 @RegisterComponent("statuses")
 public class StatusesNotificator extends Notificator implements HasStatus {
@@ -86,7 +86,7 @@ public class StatusesNotificator extends Notificator implements HasStatus {
         return expectedStatuses.contains(status);
     }
 
-    @JSONSerializationClassNameAlias("statuses-notificator")
+    @ClassNameAlias("statuses-notificator")
     public static class Status_ extends StatusValue{
 		private static final long serialVersionUID = 6942587406344699070L;
 		

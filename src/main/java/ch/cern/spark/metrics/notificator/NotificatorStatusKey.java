@@ -3,9 +3,9 @@ package ch.cern.spark.metrics.notificator;
 import java.util.Map;
 
 import ch.cern.spark.status.IDStatusKey;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 
-@JSONSerializationClassNameAlias("notificator-key")
+@ClassNameAlias("notificator-key")
 public class NotificatorStatusKey implements IDStatusKey{
 
     private static final long serialVersionUID = -4289498306145284346L;

@@ -13,9 +13,9 @@ import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 
-@JSONSerializationClassNameAlias("metric-variable")
+@ClassNameAlias("metric-variable")
 public class MetricVariableStatus extends StatusValue {
 
     private static final long serialVersionUID = -7439047274576894171L;

@@ -19,7 +19,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.TimeUtils;
 
 public class ValueHistory implements Serializable {
@@ -111,7 +111,7 @@ public class ValueHistory implements Serializable {
         return stats;
     }
     
-    @JSONSerializationClassNameAlias("value-history")
+    @ClassNameAlias("value-history")
     public static class Status extends StatusValue{
         private static final long serialVersionUID = 8818532585911816073L;
         

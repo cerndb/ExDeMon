@@ -83,8 +83,8 @@ public class StatusesManagerCLITest {
     }
     
     @Test
-    public void filterByDefinedMetrics() throws ConfigurationException, IOException {
-        cmd("-conf /path/ -definedMetrics");
+    public void filterByClassName() throws ConfigurationException, IOException {
+        cmd("-conf /path/ -fqcn ch.cern.spark.metrics.defined.DefinedMetricStatuskey");
         
         sendMessage(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1));
         sendMessage(new DefinedMetricStatuskey("dm2", new HashMap<>()), new TestStatus(1));
@@ -99,8 +99,8 @@ public class StatusesManagerCLITest {
     }
     
     @Test
-    public void filterByDefinedMetricID() throws ConfigurationException, IOException {
-        cmd("-conf /path/ -definedMetric dm2");
+    public void filterByAliasClassName() throws ConfigurationException, IOException {
+        cmd("-conf /path/ -fqcn defined-metric-key");
         
         sendMessage(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1));
         sendMessage(new DefinedMetricStatuskey("dm2", new HashMap<>()), new TestStatus(1));
@@ -110,87 +110,22 @@ public class StatusesManagerCLITest {
         sendMessage(new MonitorStatusKey("m2", new HashMap<>()), new TestStatus(1));
         sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
         sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
-        
-        assertEquals(1, manager.load().count());
-    }
-    
-    @Test
-    public void filterByMonitors() throws ConfigurationException, IOException {
-        cmd("-conf /path/ -monitors");
-        
-        sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new MonitorStatusKey("m2", new HashMap<>()), new TestStatus(1));
-        sendMessage(new MonitorStatusKey("m3", new HashMap<>()), new TestStatus(1));
-        
-        sendMessage(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new DefinedMetricStatuskey("dm2", new HashMap<>()), new TestStatus(1));
-        sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
-        
-        assertEquals(3, manager.load().count());
-    }
-    
-    @Test
-    public void filterByMonitorID() throws ConfigurationException, IOException {
-        cmd("-conf /path/ -monitor m1");
-        
-        sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
-        
-        sendMessage(new MonitorStatusKey("m2", new HashMap<>()), new TestStatus(1));
-        sendMessage(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new DefinedMetricStatuskey("dm2", new HashMap<>()), new TestStatus(1));
-        sendMessage(new NotificatorStatusKey("m2", "n2", new HashMap<>()), new TestStatus(1));
-        
-        assertEquals(3, manager.load().count());
-    }
-    
-    @Test
-    public void filterByNotificators() throws ConfigurationException, IOException {
-        cmd("-conf /path/ -notificators");
-        
-        sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
-        
-        sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new MonitorStatusKey("m2", new HashMap<>()), new TestStatus(1));
-        sendMessage(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new DefinedMetricStatuskey("dm2", new HashMap<>()), new TestStatus(1));
         
         assertEquals(2, manager.load().count());
     }
     
     @Test
-    public void filterByNotificatortorID() throws ConfigurationException, IOException {
-        cmd("-conf /path/ -notificator n2");
+    public void filterByID() throws ConfigurationException, IOException {
+        cmd("-conf /path/ -id dm2");
         
-        sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
-        sendMessage(new NotificatorStatusKey("m2", "n2", new HashMap<>()), new TestStatus(1));
-        
-        sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new MonitorStatusKey("m2", new HashMap<>()), new TestStatus(1));
         sendMessage(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1));
         sendMessage(new DefinedMetricStatuskey("dm2", new HashMap<>()), new TestStatus(1));
+        
         sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
-        
-        assertEquals(2, manager.load().count());
-    }
-    
-    @Test
-    public void filterByMonitorIDAndNotificatortorID() throws ConfigurationException, IOException {
-        cmd("-conf /path/ -monitor m1 -notificator n1");
-        
-        sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
-        
         sendMessage(new MonitorStatusKey("m1", new HashMap<>()), new TestStatus(1));
         sendMessage(new MonitorStatusKey("m2", new HashMap<>()), new TestStatus(1));
+        sendMessage(new NotificatorStatusKey("m1", "n1", new HashMap<>()), new TestStatus(1));
         sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
-        sendMessage(new NotificatorStatusKey("m2", "n2", new HashMap<>()), new TestStatus(1));
-        sendMessage(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1));
-        sendMessage(new DefinedMetricStatuskey("dm2", new HashMap<>()), new TestStatus(1));
         
         assertEquals(1, manager.load().count());
     }

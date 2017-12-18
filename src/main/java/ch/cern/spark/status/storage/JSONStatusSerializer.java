@@ -108,8 +108,8 @@ public class JSONStatusSerializer implements StatusSerializer {
 
         private static Map<String, Class<?>> aliases = new HashMap<>();
         {
-            new Reflections("ch.cern").getTypesAnnotatedWith(JSONSerializationClassNameAlias.class).stream().forEach(
-                    type -> aliases.put(type.getAnnotation(JSONSerializationClassNameAlias.class).value(), type));
+            new Reflections("ch.cern").getTypesAnnotatedWith(ClassNameAlias.class).stream().forEach(
+                    type -> aliases.put(type.getAnnotation(ClassNameAlias.class).value(), type));
         }
 
         @Override
@@ -150,8 +150,8 @@ public class JSONStatusSerializer implements StatusSerializer {
             JsonObject json = context.serialize(object).getAsJsonObject();
 
             Class<?> klass = object.getClass();
-            if (klass.isAnnotationPresent(JSONSerializationClassNameAlias.class))
-                json.addProperty(KEY_ALIAS_TYPE, klass.getAnnotation(JSONSerializationClassNameAlias.class).value());
+            if (klass.isAnnotationPresent(ClassNameAlias.class))
+                json.addProperty(KEY_ALIAS_TYPE, klass.getAnnotation(ClassNameAlias.class).value());
             else
                 json.addProperty(KEY_TYPE, object.getClass().getName());
 

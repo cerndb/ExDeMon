@@ -1,8 +1,8 @@
 package ch.cern.spark.status;
 
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 
-@JSONSerializationClassNameAlias("test-status")
+@ClassNameAlias("test-status")
 public class TestStatus extends StatusValue {
 
 	private static final long serialVersionUID = 2051099937848011407L;

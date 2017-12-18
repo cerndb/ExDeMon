@@ -15,7 +15,7 @@ import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 import ch.cern.utils.TimeUtils;
 
 @RegisterComponent("constant")
@@ -120,7 +120,7 @@ public class ConstantNotificator extends Notificator implements HasStatus {
         return getDiff(timestamp).compareTo(period) >= 0;
     }
 
-    @JSONSerializationClassNameAlias("constant-notificator")
+    @ClassNameAlias("constant-notificator")
     public static class Status_ extends StatusValue{
         private static final long serialVersionUID = -1907347033980904180L;
         

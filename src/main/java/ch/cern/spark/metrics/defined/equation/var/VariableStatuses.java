@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ch.cern.spark.status.StatusValue;
-import ch.cern.spark.status.storage.JSONSerializationClassNameAlias;
+import ch.cern.spark.status.storage.ClassNameAlias;
 
-@JSONSerializationClassNameAlias("defined-metric-status")
+@ClassNameAlias("defined-metric-status")
 public class VariableStatuses extends StatusValue {
 	
 	private static final long serialVersionUID = 3020679839103994736L;
