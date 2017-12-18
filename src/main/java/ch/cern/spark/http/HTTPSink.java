@@ -133,7 +133,7 @@ public class HTTPSink implements Serializable{
 					thrownExceptions.add(thrownException);
 				
 				if(!thrownExceptions.isEmpty())
-					throw new IOException("Same batches could not be sent, details in logs. Exceptions: " + thrownExceptions);
+				    LOG.error(new IOException("Same batches could not be sent. Exceptions: " + thrownExceptions));
 			});
 		});
 	}
