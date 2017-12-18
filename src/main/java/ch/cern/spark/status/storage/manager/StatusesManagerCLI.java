@@ -1,6 +1,7 @@
 package ch.cern.spark.status.storage.manager;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class StatusesManagerCLI {
     private String filter_by_fqcn;
     
     private StatusSerializer serializer;
+    private String saving_path;
     
     public StatusesManagerCLI() {
         SparkConf sparkConf = new SparkConf();
@@ -62,26 +64,54 @@ public class StatusesManagerCLI {
         
         JavaPairRDD<StatusKey, StatusValue> filteredStatuses = manager.loadAndFilter();
         
-        Map<Integer, StatusKey> indexedKeys = getInxedKeys(filteredStatuses);
-        manager.printKeys(indexedKeys);
-        
-        int index = askForIndex();
-        
-        StatusKey key = indexedKeys.get(index);
-        List<StatusValue> value = filteredStatuses.lookup(key);
-        if(key == null || value.size() < 1) {
-            System.out.println("There is no value for this key.");
-            System.exit(1);
+        StatusKey key = null;
+        StatusValue value = null;
+        if(filteredStatuses.count() > 1) {
+            Map<Integer, StatusKey> indexedKeys = getInxedKeys(filteredStatuses);
+            manager.printKeys(indexedKeys);
+            
+            int index = askForIndex();
+            
+            key = indexedKeys.get(index);
+            List<StatusValue> values = filteredStatuses.lookup(key);
+            if(key == null || values.size() < 1) {
+                System.out.println("There is no value for this key.");
+                System.exit(1);
+            }
+            
+            value = values.get(0);
         }
+
+        manager.printDetailedInfo(key, value);
+        manager.save(key, value);
+    }
+
+    private void save(StatusKey key, StatusValue value) throws IOException {
+        if(saving_path == null)
+            return;
         
-        manager.printDetailedInfo(key, value.get(0));
+        JSONStatusSerializer json = new JSONStatusSerializer();
+        
+        PrintWriter writer = new PrintWriter(saving_path + ".key", "UTF-8");
+        writer.println(new String(json.fromKey(key)));
+        writer.close();
+        
+        writer = new PrintWriter(saving_path + ".value", "UTF-8");
+        writer.println(new String(json.fromValue(value)));
+        writer.close();
+        
+        System.out.println();
+        System.out.println("JSON document saved at: " + saving_path + "(.key, .value)");
     }
 
     private void printDetailedInfo(StatusKey key, StatusValue value) throws IOException {
+        if(serializer == null)
+            return;
+        
         System.out.println();
         System.out.println("Detailed information:");
-        System.out.println("Key: " + new String(serializer.fromKey(key)));
-        System.out.println("Value: " + new String(serializer.fromValue(value)));
+        System.out.println("- Key: " + new String(serializer.fromKey(key)));
+        System.out.println("- Value: " + new String(serializer.fromValue(value)));
     }
 
     private static int askForIndex() {
@@ -119,11 +149,14 @@ public class StatusesManagerCLI {
         return index;
     }
 
-    private void printKeys(Map<Integer, StatusKey> indexedKeys) throws IOException {
+    private void printKeys(Map<Integer, StatusKey> indexedKeys) throws IOException, ConfigurationException {
+        if(serializer == null)
+            throw new ConfigurationException("Several keys has been found but not print option has been specified, so they cannot be listed.");
+        
         System.out.println("List of found keys:");
         
         for (Map.Entry<Integer, StatusKey> key : indexedKeys.entrySet())
-            System.out.println(key.getKey() + ": " + new String(serializer.fromKey(key.getValue())));
+            System.out.println(key.getKey() + ":\t" + new String(serializer.fromKey(key.getValue())));
     }
 
     public JavaPairRDD<StatusKey, StatusValue> loadAndFilter() throws IOException, ConfigurationException {
@@ -146,9 +179,11 @@ public class StatusesManagerCLI {
         options.addOption(brokers);
         
         options.addOption(new Option("id", "id", true, "filter by status key id"));
-        options.addOption(new Option("fqcn", "fqcn", true, "filter by FQCN or alias"));
+        options.addOption(new Option("n", "fqcn", true, "filter by FQCN or alias"));
         
-        options.addOption(new Option("print", "print", false, "print as JSON"));
+        options.addOption(new Option("p", "print", true, "print mode: java or json"));
+        
+        options.addOption(new Option("s", "save", true, "path to write result as JSON"));
         
         CommandLineParser parser = new BasicParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -159,7 +194,7 @@ public class StatusesManagerCLI {
             return cmd;
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("kafka-statuses-manager", options);
+            formatter.printHelp("spark-statuses-manager", options);
 
             return null;
         }
@@ -171,14 +206,16 @@ public class StatusesManagerCLI {
         filter_by_id = cmd.getOptionValue("id");
         filter_by_fqcn = cmd.getOptionValue("fqcn");
         
-        if(!cmd.hasOption("print"))
-            serializer = new JSONStatusSerializer();
+        if(cmd.getOptionValue("print") == null)
+            serializer = null;
         else if(cmd.getOptionValue("print").equals("java"))
             serializer = new JavaStatusSerializer();
         else if(cmd.getOptionValue("print").equals("json"))
             serializer = new JSONStatusSerializer();
         else
             throw new ConfigurationException("Print option " + cmd.getOptionValue("print") + " is not available");
+        
+        saving_path = cmd.getOptionValue("save");
     }
     
     public void close(){
