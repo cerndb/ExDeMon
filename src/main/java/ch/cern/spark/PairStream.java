@@ -85,7 +85,7 @@ public class PairStream<K, V> extends Stream<Tuple2<K, V>>{
 	}
 
 	private PairStream<K, V> union(PairStream<K, V> other) {
-        return fromT(super.union(Stream.from(asJavaDStream())).asJavaDStream());
+        return fromT(asJavaDStream().union(other.asJavaDStream()));
     }
 
     private static Option<Duration> getStatusExpirationPeriod(JavaSparkContext context) {

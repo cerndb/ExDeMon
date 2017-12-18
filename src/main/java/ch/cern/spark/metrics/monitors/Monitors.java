@@ -13,7 +13,6 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
-import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.ComputeNotificatorKeysF;
 import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
@@ -66,7 +65,7 @@ public class Monitors {
 	    Stream<NotificatorStatusKey> statusesToRemove = null;
 	    if(allStatusesToRemove.isPresent())
 	        statusesToRemove = allStatusesToRemove.get()
-	                                    .filter(key -> key instanceof DefinedMetricStatuskey)
+	                                    .filter(key -> key instanceof NotificatorStatusKey)
 	                                    .map(key -> (NotificatorStatusKey) key);
 	        
         return results.mapWithState(
