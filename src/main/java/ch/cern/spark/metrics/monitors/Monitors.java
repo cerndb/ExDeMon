@@ -51,7 +51,7 @@ public class Monitors {
 	    Stream<MonitorStatusKey> statusesToRemove = null;
 	    if(allStatusesToRemove.isPresent())
 	        statusesToRemove = allStatusesToRemove.get()
-	                                .filter(key -> key.getClass().isAssignableFrom(MonitorStatusKey.class))
+	                                .filter(key -> key instanceof MonitorStatusKey)
 	                                .map(key -> (MonitorStatusKey) key);
 	    
         return metrics.mapWithState(
@@ -66,7 +66,7 @@ public class Monitors {
 	    Stream<NotificatorStatusKey> statusesToRemove = null;
 	    if(allStatusesToRemove.isPresent())
 	        statusesToRemove = allStatusesToRemove.get()
-	                                    .filter(key -> key.getClass().isAssignableFrom(DefinedMetricStatuskey.class))
+	                                    .filter(key -> key instanceof DefinedMetricStatuskey)
 	                                    .map(key -> (NotificatorStatusKey) key);
 	        
         return results.mapWithState(

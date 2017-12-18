@@ -46,7 +46,7 @@ public class DefinedMetrics {
 	    Stream<DefinedMetricStatuskey> statusesToRemove = null;
         if(allStatusesToRemove.isPresent())
             statusesToRemove = allStatusesToRemove.get()
-                                    .filter(key -> key.getClass().isAssignableFrom(DefinedMetricStatuskey.class))
+                                    .filter(key -> key instanceof DefinedMetricStatuskey)
                                     .map(key -> (DefinedMetricStatuskey) key);
         
 		StatusStream<DefinedMetricStatuskey, Metric, VariableStatuses, Metric> statuses = 
