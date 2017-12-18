@@ -2,6 +2,7 @@ package ch.cern.spark.status;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -55,6 +56,7 @@ public class StatusesKeyReceiver extends Receiver<StatusKey> {
     public void tryReceive() throws Throwable{
         Socket socket = new Socket(host, port);        
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
         
         String line;
         while ((line = reader.readLine()) != null) {
@@ -62,14 +64,17 @@ public class StatusesKeyReceiver extends Receiver<StatusKey> {
                 StatusKey key = derializer.toKey(line.getBytes());
                 
                 LOG.info("Received key to remove: " + line);
+                writer.println("OK");
                 
                 store(key);
             } catch(Exception e) {
                 LOG.error("Statuses removal socket: " + e.getMessage(), e);
+                writer.println("ERROR");
             }
         }
         
         reader.close();
+        writer.close();
         socket.close();
     }
 

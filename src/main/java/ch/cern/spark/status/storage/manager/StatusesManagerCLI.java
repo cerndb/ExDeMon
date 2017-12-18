@@ -1,7 +1,14 @@
 package ch.cern.spark.status.storage.manager;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +30,7 @@ import ch.cern.components.ComponentManager;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.spark.SparkConf;
+import ch.cern.spark.metrics.Driver;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
@@ -39,8 +47,15 @@ public class StatusesManagerCLI {
     private String filter_by_id;
     private String filter_by_fqcn;
     
+    private JSONStatusSerializer json = new JSONStatusSerializer();
+    
     private StatusSerializer serializer;
     private String saving_path;
+    
+    private String statuses_removal_socket_host;
+    private int statuses_removal_socket_port;
+    
+    private static Scanner STDIN = new Scanner(System.in);
     
     public StatusesManagerCLI() {
         SparkConf sparkConf = new SparkConf();
@@ -84,13 +99,56 @@ public class StatusesManagerCLI {
 
         manager.printDetailedInfo(key, value);
         manager.save(key, value);
+        
+        if(askRemove())
+            manager.remove(key);
+        
+        STDIN.close();
+    }
+
+    private void remove(StatusKey key) throws UnknownHostException, IOException, ConfigurationException {
+        String actualHostname = InetAddress.getLocalHost().getHostName();
+        String configuredName = InetAddress.getByName(statuses_removal_socket_host).getHostName();
+        
+        if(!actualHostname.equals(configuredName))
+            throw new ConfigurationException("Job is listening on " + configuredName + ", but this command is being run on " + actualHostname);
+        
+        @SuppressWarnings("resource")
+        Socket socket = new ServerSocket(statuses_removal_socket_port).accept();
+        
+        BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+        
+        System.out.println();
+        System.out.println("Sending key for removal: ");
+        
+        String jsonString = new String(json.fromKey(key));
+        writer.println(jsonString);
+        
+        String answer = reader.readLine();
+        
+        System.out.println("Removed: " + answer);
+        
+        socket.close();
+    }
+
+    private static boolean askRemove() {        
+        System.out.println();
+        System.out.println("Remove status? (Y, n or exit): ");
+        String answer = STDIN.nextLine();
+        if(answer == null || answer.equals("exit"))
+            System.exit(0);
+        
+        boolean remove = false;
+        if(answer != null && answer.equals("Y"))
+            remove = true;
+        
+        return remove;
     }
 
     private void save(StatusKey key, StatusValue value) throws IOException {
         if(saving_path == null)
             return;
-        
-        JSONStatusSerializer json = new JSONStatusSerializer();
         
         PrintWriter writer = new PrintWriter(saving_path + ".key", "UTF-8");
         writer.println(new String(json.fromKey(key)));
@@ -117,10 +175,8 @@ public class StatusesManagerCLI {
     private static int askForIndex() {
         System.out.println();
         
-        Scanner reader = new Scanner(System.in);
-        
         System.out.println("Index number for detailed information (or exit): ");
-        String indexString = reader.nextLine();
+        String indexString = STDIN.nextLine();
         if(indexString == null || indexString.equals("exit"))
             System.exit(0);
         
@@ -132,8 +188,6 @@ public class StatusesManagerCLI {
             
             System.exit(1);
         }
-        
-        reader.close();
         
         return index;
     }
@@ -202,6 +256,14 @@ public class StatusesManagerCLI {
 
     protected void config(Properties properties, CommandLine cmd) throws ConfigurationException  {
         storage = ComponentManager.build(Type.STATUS_STORAGE, properties.getSubset(StatusesStorage.STATUS_STORAGE_PARAM));
+        
+        String removalSocket = properties.getProperty(Driver.STATUSES_REMOVAL_SOCKET_PARAM);
+        if(removalSocket != null) {
+            String[] host_port = removalSocket.trim().split(":");
+            
+            statuses_removal_socket_host = host_port[0];
+            statuses_removal_socket_port = Integer.parseInt(host_port[1]);
+        }
         
         filter_by_id = cmd.getOptionValue("id");
         filter_by_fqcn = cmd.getOptionValue("fqcn");
