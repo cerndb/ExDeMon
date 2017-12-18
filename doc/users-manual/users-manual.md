@@ -34,6 +34,10 @@ properties.source.<other_confs> = <value>
 # +info at components that store statuses: defined metrics, monitors and notificators
 statuses.removal.socket = <host:port>
 
+# Default statuses store
+spark.cern.streaming.status.storage.type = single-file
+spark.cern.streaming.status.storage.path = /tmp/metrics-monitor-statuses/
+
 # At least one source is mandatory
 metrics.source.<metric-source-id-1>.type = <metric_source_type>
 metrics.source.<metric-source-id-1>.<other_confs> = <value>
