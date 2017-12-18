@@ -19,7 +19,7 @@ import ch.cern.Cache;
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentManager;
 import ch.cern.properties.source.PropertiesSource;
-import ch.cern.spark.Pair;
+import ch.cern.utils.Pair;
 import ch.cern.utils.TimeUtils;
 import scala.Tuple2;
 

@@ -11,12 +11,12 @@ import org.apache.log4j.Logger;
 import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Pair;
 import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusStream;
+import ch.cern.utils.Pair;
 
 public class DefinedMetrics {
 

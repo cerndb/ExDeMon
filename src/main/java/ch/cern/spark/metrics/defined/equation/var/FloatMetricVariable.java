@@ -10,12 +10,12 @@ import java.util.stream.DoubleStream;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.DatedValue;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.Value;
+import ch.cern.utils.Pair;
 
 public class FloatMetricVariable extends MetricVariable{
 	

@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.Equation;
 import ch.cern.spark.metrics.defined.equation.var.AnyMetricVariable;
@@ -23,6 +22,7 @@ import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
 import ch.cern.spark.metrics.filter.MetricsFilter;
 import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.Value;
+import ch.cern.utils.Pair;
 
 public class DefinedMetric implements Serializable{
 

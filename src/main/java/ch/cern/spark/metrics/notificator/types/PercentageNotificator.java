@@ -13,13 +13,13 @@ import java.util.stream.Stream;
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.notifications.Notification;
 import ch.cern.spark.metrics.notificator.Notificator;
 import ch.cern.spark.metrics.results.AnalysisResult.Status;
 import ch.cern.spark.status.HasStatus;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.ClassNameAlias;
+import ch.cern.utils.Pair;
 import ch.cern.utils.TimeUtils;
 
 @RegisterComponent("percentage")

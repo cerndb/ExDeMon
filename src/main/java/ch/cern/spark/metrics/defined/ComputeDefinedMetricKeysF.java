@@ -5,7 +5,6 @@ import java.util.Iterator;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 
 import ch.cern.properties.Properties;
-import ch.cern.spark.Pair;
 import ch.cern.spark.metrics.Metric;
 import scala.Tuple2;
 
@@ -25,9 +24,9 @@ public class ComputeDefinedMetricKeysF implements PairFlatMapFunction<Metric, De
 		
         return DefinedMetrics.getCache().get().values().stream()
 		        		.filter(definedMetric -> definedMetric.testIfApplyForAnyVariable(metric))
-		        		.map(definedMetric -> new Pair<>(definedMetric.getName(), definedMetric.getGroupByMetricIDs(metric.getIDs())))
-		        		.filter(pair -> pair.second.isPresent())
-		        		.map(pair -> new DefinedMetricStatuskey(pair.first, pair.second.get()))
+		        		.map(definedMetric -> new Tuple2<>(definedMetric.getName(), definedMetric.getGroupByMetricIDs(metric.getIDs())))
+		        		.filter(pair -> pair._2.isPresent())
+		        		.map(pair -> new DefinedMetricStatuskey(pair._1, pair._2.get()))
 		        		.map(ids -> new Tuple2<DefinedMetricStatuskey, Metric>(ids, metric))
 		        		.iterator();
 	}

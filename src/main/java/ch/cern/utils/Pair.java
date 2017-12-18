@@ -1,4 +1,4 @@
-package ch.cern.spark;
+package ch.cern.utils;
 
 import java.io.Serializable;
 

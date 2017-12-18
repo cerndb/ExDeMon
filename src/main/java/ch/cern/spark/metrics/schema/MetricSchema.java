@@ -25,7 +25,6 @@ import com.google.gson.JsonPrimitive;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Pair;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.filter.MetricsFilter;
@@ -34,6 +33,7 @@ import ch.cern.spark.metrics.value.ExceptionValue;
 import ch.cern.spark.metrics.value.FloatValue;
 import ch.cern.spark.metrics.value.StringValue;
 import ch.cern.spark.metrics.value.Value;
+import ch.cern.utils.Pair;
 
 public class MetricSchema implements Serializable {
 
