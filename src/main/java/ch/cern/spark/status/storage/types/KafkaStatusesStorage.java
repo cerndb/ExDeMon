@@ -94,7 +94,7 @@ public class KafkaStatusesStorage extends StatusesStorage {
 		
 		JavaRDD<Tuple2<StatusKey, StatusValue>> parsed = parseRecords(latestRecords);
 		
-		LOG.info(parsed.count() + " statuses loaded from Kafka topic " + topic);
+		LOG.info("Statuses loaded from Kafka topic " + topic);
 		
 		parsed = parsed.persist(StorageLevel.MEMORY_AND_DISK());
 		
