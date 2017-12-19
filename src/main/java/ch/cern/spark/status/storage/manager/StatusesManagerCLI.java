@@ -9,6 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import ch.cern.spark.status.storage.JSONStatusSerializer;
 import ch.cern.spark.status.storage.JavaStatusSerializer;
 import ch.cern.spark.status.storage.StatusSerializer;
 import ch.cern.spark.status.storage.StatusesStorage;
+import ch.cern.utils.TimeUtils;
 import scala.Tuple2;
 
 public class StatusesManagerCLI {
@@ -54,6 +56,8 @@ public class StatusesManagerCLI {
     
     private String statuses_removal_socket_host;
     private int statuses_removal_socket_port;
+    
+    private Duration expired_period;
     
     private static Scanner STDIN = new Scanner(System.in);
     
@@ -232,6 +236,9 @@ public class StatusesManagerCLI {
         if(filter_by_fqcn != null)
             statuses = statuses.filter(new ClassNameStatusKeyFilter(filter_by_fqcn));
         
+        if(expired_period != null)
+            statuses = statuses.filter(new ExpireStatusKeyFilter(expired_period));
+        
         return statuses.mapToPair(tuple -> tuple);
     }
 
@@ -248,6 +255,8 @@ public class StatusesManagerCLI {
         options.addOption(new Option("p", "print", true, "print mode: java or json"));
         
         options.addOption(new Option("s", "save", true, "path to write result as JSON"));
+        
+        options.addOption(new Option("e", "expired", true, "filter by expired values, expiration period like 1m, 3h, 5d"));
         
         CommandLineParser parser = new BasicParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -288,6 +297,10 @@ public class StatusesManagerCLI {
             throw new ConfigurationException("Print option " + cmd.getOptionValue("print") + " is not available");
         
         saving_path = cmd.getOptionValue("save");
+        
+        String expiredString = cmd.getOptionValue("expired");
+        if(expiredString != null)
+            expired_period = TimeUtils.parsePeriod(expiredString);
     }
     
     public void close(){

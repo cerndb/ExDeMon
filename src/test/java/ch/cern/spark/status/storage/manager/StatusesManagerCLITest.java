@@ -3,6 +3,8 @@ package ch.cern.spark.status.storage.manager;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +12,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.spark.streaming.StateImpl;
+import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.kafka010.KafkaTestUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -128,6 +132,34 @@ public class StatusesManagerCLITest {
         sendMessage(new NotificatorStatusKey("m1", "n2", new HashMap<>()), new TestStatus(1));
         
         assertEquals(1, manager.loadAndFilter().count());
+    }
+    
+    @Test
+    public void filterByExpiration() throws ConfigurationException, IOException {
+        cmd("-conf /path/ -expired 4m");
+        
+        Instant now = Instant.now();
+        
+        //Time = 0
+        sendMessage(new DefinedMetricStatuskey("dm1", new HashMap<>()), new TestStatus(1));
+        
+        StatusValue status = new TestStatus(1);
+        status.update(new StateImpl<>(), new Time(now.minus(Duration.ofMinutes(10)).toEpochMilli()));
+        sendMessage(new DefinedMetricStatuskey("dm2", new HashMap<>()), status);
+        
+        status = new TestStatus(1);
+        status.update(new StateImpl<>(), new Time(now.minus(Duration.ofMinutes(5)).toEpochMilli()));
+        sendMessage(new DefinedMetricStatuskey("dm3", new HashMap<>()), status);
+        
+        status = new TestStatus(1);
+        status.update(new StateImpl<>(), new Time(now.minus(Duration.ofMinutes(3)).toEpochMilli()));
+        sendMessage(new DefinedMetricStatuskey("dm4", new HashMap<>()), status);
+        
+        status = new TestStatus(1);
+        status.update(new StateImpl<>(), new Time(now.minus(Duration.ofMinutes(1)).toEpochMilli()));
+        sendMessage(new DefinedMetricStatuskey("dm5", new HashMap<>()), status);
+        
+        assertEquals(3, manager.loadAndFilter().count());
     }
 
     private void cmd(String cmdString) throws ConfigurationException {
