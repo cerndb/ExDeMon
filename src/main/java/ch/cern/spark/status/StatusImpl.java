@@ -3,15 +3,19 @@ package ch.cern.spark.status;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
-public class TimedState<S extends StatusValue> extends State<S> {
+public class StatusImpl<S extends StatusValue> extends State<S> {
 
     private State<S> state;
     
     private Time time;
 
-    public TimedState(State<S> state, Time time) {
+    private boolean removed;
+
+    public StatusImpl(State<S> state, Time time) {
         this.state = state;
         this.time = time;
+        
+        this.removed = false;
     }
 
     @Override
@@ -27,6 +31,7 @@ public class TimedState<S extends StatusValue> extends State<S> {
     @Override
     public void remove() {
         state.remove();
+        removed = true;
     }
 
     @Override
@@ -37,6 +42,10 @@ public class TimedState<S extends StatusValue> extends State<S> {
     @Override
     public void update(S newState) {
         newState.update(state, time);
+    }
+    
+    public boolean isRemoved() {
+        return removed;
     }
 
 }

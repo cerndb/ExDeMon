@@ -6,14 +6,17 @@ import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.Time;
 
 public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends StatusValue, R>
-    implements Function4<Time, K, Optional<ActionOrValue<V>>, State<S>, Optional<R>> {
+    implements Function4<Time, K, Optional<ActionOrValue<V>>, State<S>, Optional<RemoveAndValue<K, R>>> {
 
     private static final long serialVersionUID = 8556057397769787107L;
     
     @Override
-    public Optional<R> call(Time time, K key, Optional<ActionOrValue<V>> actionOrValue, State<S> state) throws Exception {
-        if(state.isTimingOut())
-            return timingOut(time, key, state.get());
+    public Optional<RemoveAndValue<K, R>> call(Time time, K key, Optional<ActionOrValue<V>> actionOrValue, State<S> state) throws Exception {
+        if(state.isTimingOut()) {
+            Optional<R> result = timingOut(time, key, state.get());
+            
+            return Optional.of(new RemoveAndValue<>(key, result));
+        }
         
         if(actionOrValue.get().isRemoveAction()) {
             state.remove();
@@ -21,9 +24,14 @@ public abstract class UpdateStatusFunction<K extends StatusKey, V, S extends Sta
             return Optional.absent();
         }
         
-        state = new TimedState<S>(state, time);
+        StatusImpl<S> status = new StatusImpl<S>(state, time);
         
-        return toOptional(update(key, actionOrValue.get().getValue(), state));
+        Optional<R> result = toOptional(update(key, actionOrValue.get().getValue(), state));
+        
+        if(status.isRemoved())
+            return Optional.of(new RemoveAndValue<>(key, result));
+        else
+            return Optional.of(new RemoveAndValue<>(null, result));
     }
 
     protected abstract java.util.Optional<R> update(K key, V value, State<S> status) throws Exception;

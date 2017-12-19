@@ -19,7 +19,7 @@ import ch.cern.spark.metrics.notificator.ComputeNotificatorKeysF;
 import ch.cern.spark.metrics.notificator.NotificatorStatusKey;
 import ch.cern.spark.metrics.notificator.UpdateNotificatorStatusesF;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import ch.cern.spark.status.State;
+import ch.cern.spark.status.Status;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 
@@ -62,12 +62,12 @@ public class Monitors {
 	    
 	    JavaPairDStream<MonitorStatusKey, Metric> idAndMetrics = metrics.flatMapToPair(new ComputeMonitorKeysF(propertiesSourceProps));
 
-	    return State.<MonitorStatusKey, Metric, StatusValue, AnalysisResult>map(
+	    return Status.<MonitorStatusKey, Metric, StatusValue, AnalysisResult>map(
 	                    MonitorStatusKey.class, 
 	                    StatusValue.class, 
 	                    idAndMetrics, 
 	                    new UpdateMonitorStatusesF(propertiesSourceProps),
-	                    Optional.ofNullable(statusesToRemove));
+	                    Optional.ofNullable(statusesToRemove)).values();
 	}
 
 	public static JavaDStream<Notification> notify(JavaDStream<AnalysisResult> results, Properties propertiesSourceProps, Optional<JavaDStream<StatusKey>> allStatusesToRemove) throws IOException, ClassNotFoundException, ConfigurationException {
@@ -79,12 +79,12 @@ public class Monitors {
 	    
 	    JavaPairDStream<NotificatorStatusKey, AnalysisResult> idAndAnalysis = results.flatMapToPair(new ComputeNotificatorKeysF(propertiesSourceProps));
 	    
-	    return State.<NotificatorStatusKey, AnalysisResult, StatusValue, Notification>map(
+	    return Status.<NotificatorStatusKey, AnalysisResult, StatusValue, Notification>map(
 	                    NotificatorStatusKey.class, 
                         StatusValue.class, 
                         idAndAnalysis, 
                         new UpdateNotificatorStatusesF(propertiesSourceProps),
-                        Optional.ofNullable(statusesToRemove));
+                        Optional.ofNullable(statusesToRemove)).values();
 	}
 	
 	public static Cache<Map<String, Monitor>> getCache() {
