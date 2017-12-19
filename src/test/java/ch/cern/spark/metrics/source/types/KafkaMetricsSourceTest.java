@@ -9,9 +9,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Test;
 
-import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
 
 public class KafkaMetricsSourceTest extends MetricsStreamFromKafkaProvider{
@@ -32,11 +32,11 @@ public class KafkaMetricsSourceTest extends MetricsStreamFromKafkaProvider{
 		ids.put("KEY_TO_REMOVE", "something");
 		inputMetrics.add(new Metric(Instant.now(), (float) Math.random(), ids));
 		
-		Stream<Metric> metrics = createStream();
+		JavaDStream<Metric> metrics = createStream();
 
 		List<Metric> outputMetrics = new LinkedList<>();
 		metrics.foreachRDD(rdd -> {
-			List<Metric> metricsList = rdd.asJavaRDD().collect();
+			List<Metric> metricsList = rdd.collect();
 			outputMetrics.addAll(metricsList);
 		});
 		

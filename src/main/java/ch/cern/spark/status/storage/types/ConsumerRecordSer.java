@@ -5,7 +5,7 @@ import java.io.Serializable;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.utils.Bytes;
 
-import ch.cern.spark.ByteArray;
+import ch.cern.utils.ByteArray;
 
 public class ConsumerRecordSer implements Serializable{
 

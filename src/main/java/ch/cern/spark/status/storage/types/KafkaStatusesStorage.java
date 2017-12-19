@@ -22,6 +22,7 @@ import org.apache.kafka.common.serialization.BytesDeserializer;
 import org.apache.kafka.common.serialization.BytesSerializer;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.log4j.Logger;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
@@ -33,14 +34,13 @@ import com.google.common.collect.Sets;
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.ByteArray;
-import ch.cern.spark.RDD;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.JSONStatusSerializer;
 import ch.cern.spark.status.storage.JavaStatusSerializer;
 import ch.cern.spark.status.storage.StatusSerializer;
 import ch.cern.spark.status.storage.StatusesStorage;
+import ch.cern.utils.ByteArray;
 import scala.Tuple2;
 
 @RegisterComponent("kafka")
@@ -194,23 +194,23 @@ public class KafkaStatusesStorage extends StatusesStorage {
 	}
 	
 	@Override
-	public <K extends StatusKey, V extends StatusValue> void save(RDD<Tuple2<K, V>> rdd, Time time)
+	public <K extends StatusKey, V extends StatusValue> void save(JavaPairRDD<K, V> rdd, Time time)
 			throws IllegalArgumentException, IOException, ConfigurationException {
 		
 		rdd = filterOnlyUpdatedStates(rdd, time);
 		
-		rdd.asJavaRDD().foreachPartition(new KafkaProducerFunc<K, V>(kafkaProducer, serializer, topic));
+		rdd.foreachPartition(new KafkaProducerFunc<K, V>(kafkaProducer, serializer, topic));
 	}
 	
     @Override
-    public <K extends StatusKey> void remove(RDD<K> rdd) {
-        JavaRDD<Tuple2<K, StatusValue>> keyWithNulls = rdd.asJavaRDD().map(key -> new Tuple2<K, StatusValue>(key, null));
+    public <K extends StatusKey> void remove(JavaRDD<K> rdd) {
+        JavaRDD<Tuple2<K, StatusValue>> keyWithNulls = rdd.map(key -> new Tuple2<K, StatusValue>(key, null));
         
         keyWithNulls.foreachPartition(new KafkaProducerFunc<K, StatusValue>(kafkaProducer, serializer, topic));
     }
 	
-    private <K extends StatusKey, V extends StatusValue> RDD<Tuple2<K, V>> filterOnlyUpdatedStates(RDD<Tuple2<K, V>> rdd, Time time) {
-		return RDD.from(rdd.asJavaRDD().filter(tuple -> tuple._2 == null || tuple._2.getUpdatedTime() == time.milliseconds() || tuple._2.getUpdatedTime() == 0));
+    private <K extends StatusKey, V extends StatusValue> JavaPairRDD<K, V> filterOnlyUpdatedStates(JavaPairRDD<K, V> rdd, Time time) {
+		return rdd.filter(tuple -> tuple._2 == null || tuple._2.getUpdatedTime() == time.milliseconds() || tuple._2.getUpdatedTime() == 0);
 	}
 
 	private Map<String, Object> getKafkaProducerParams(Properties props) {

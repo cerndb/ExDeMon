@@ -18,12 +18,12 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.http.HTTPSink;
 import ch.cern.spark.metrics.notifications.Notification;
@@ -57,7 +57,7 @@ public class HTTPNotificationsSinkTest extends StreamTestHelper<Notification, No
 		notification.setTags(tags);
 		addInput(0, notification);
         
-        Stream<Notification> resultsStream = createStream(Notification.class);
+		JavaDStream<Notification> resultsStream = createStream(Notification.class);
         
         HTTPNotificationsSink sink = new HTTPNotificationsSink();
         sink.config(properties);

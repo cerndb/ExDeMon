@@ -10,6 +10,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Durations;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.KafkaTestUtils;
 import org.apache.spark.util.ManualClock;
@@ -19,7 +20,6 @@ import org.junit.Before;
 import ch.cern.properties.Properties;
 import ch.cern.spark.BatchCounter;
 import ch.cern.spark.SparkConf;
-import ch.cern.spark.Stream;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.spark.metrics.JSONMetric;
 import ch.cern.spark.metrics.Metric;
@@ -80,8 +80,8 @@ public class MetricsStreamFromKafkaProvider implements Serializable{
 		sc.addStreamingListener(batchCounter);
 	}
 	
-	public Stream<Metric> createStream(){
-		return MetricSchemas.generate(metricsSource.createStream(sc), null, metricsSource.getId(), metricsSource.getSchema());
+	public JavaDStream<Metric> createStream(){
+		return MetricSchemas.generate(metricsSource.createJavaDStream(sc), null, metricsSource.getId(), metricsSource.getSchema());
 	}
 	
 	public void sendMetrics(List<Metric> inputMetrics) {

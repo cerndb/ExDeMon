@@ -20,6 +20,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -28,7 +29,6 @@ import com.google.gson.JsonPrimitive;
 
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.http.HTTPSink;
 import ch.cern.spark.json.JSONObject;
@@ -59,7 +59,7 @@ public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification,
 		notification.setSinkIds(sinks);
 		addInput(0, notification);
         
-        Stream<Notification> resultsStream = createStream(Notification.class);
+		JavaDStream<Notification> resultsStream = createStream(Notification.class);
         
         CERNGNINotificationsSink sink = new CERNGNINotificationsSink();
         sink.config(properties);
@@ -98,7 +98,7 @@ public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification,
 		notification.setSinkIds(sinks);
 		addInput(0, notification);
         
-        Stream<Notification> resultsStream = createStream(Notification.class);
+		JavaDStream<Notification> resultsStream = createStream(Notification.class);
         
         CERNGNINotificationsSink sink = new CERNGNINotificationsSink();
         sink.config(properties);
@@ -146,7 +146,7 @@ public class CERNGNINotificationsSinkTest extends StreamTestHelper<Notification,
 		notification.setTags(tags);
 		addInput(0, notification);
         
-        Stream<Notification> resultsStream = createStream(Notification.class);
+		JavaDStream<Notification> resultsStream = createStream(Notification.class);
         
         CERNGNINotificationsSink sink = new CERNGNINotificationsSink();
         sink.config(properties);

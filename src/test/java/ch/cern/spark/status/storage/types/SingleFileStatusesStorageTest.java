@@ -12,14 +12,13 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Time;
 import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.properties.Properties;
-import ch.cern.spark.RDD;
 import ch.cern.spark.SparkConf;
 import ch.cern.spark.metrics.defined.DefinedMetricStatuskey;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
@@ -69,10 +68,10 @@ public class SingleFileStatusesStorageTest {
 		statuses.put("v2", new TestStatus(101));
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id, statuses));
 		
-		RDD<Tuple2<DefinedMetricStatuskey, VariableStatuses>> inputRDD = RDD.from(context.parallelize(inputList));
+		JavaPairRDD<DefinedMetricStatuskey, VariableStatuses> inputRDD = context.parallelize(inputList).mapToPair(f->f);;
 		storage.save(inputRDD, new Time(0));
 		
-		JavaRDD<Tuple2<DefinedMetricStatuskey, VariableStatuses>> outputRDD = storage.load(context, DefinedMetricStatuskey.class, VariableStatuses.class);
+		JavaPairRDD<DefinedMetricStatuskey, VariableStatuses> outputRDD = storage.load(context, DefinedMetricStatuskey.class, VariableStatuses.class);
 		List<Tuple2<DefinedMetricStatuskey, VariableStatuses>> outputList = outputRDD.collect();
 		
 		assertNotSame(inputList, outputList);
@@ -93,7 +92,7 @@ public class SingleFileStatusesStorageTest {
 		StatusValue status = new TestStatus(14);
 		Tuple2<StatusKey, StatusValue> tuple1 = new Tuple2<StatusKey, StatusValue>(id, status);
 		inputList.add(tuple1);
-		RDD<Tuple2<StatusKey, StatusValue>> inputRDD = RDD.from(context.parallelize(inputList));
+		JavaPairRDD<StatusKey, StatusValue> inputRDD = context.parallelize(inputList).mapToPair(f->f);
 		storage.save(inputRDD, new Time(0));
 		
 		inputList = new LinkedList<>();
@@ -101,13 +100,13 @@ public class SingleFileStatusesStorageTest {
 		status = new TestStatus(10);
 		Tuple2<StatusKey, StatusValue> tuple2 = new Tuple2<StatusKey, StatusValue>(id, status);
 		inputList.add(tuple2);
-		inputRDD = RDD.from(context.parallelize(inputList));
+		inputRDD = context.parallelize(inputList).mapToPair(f->f);
 		storage.save(inputRDD, new Time(0));
 		
-		JavaRDD<Tuple2<DefinedMetricStatuskey, TestStatus>> outputRDD = storage.load(context, DefinedMetricStatuskey.class, TestStatus.class);
+		JavaPairRDD<DefinedMetricStatuskey, TestStatus> outputRDD = storage.load(context, DefinedMetricStatuskey.class, TestStatus.class);
 		List<Tuple2<DefinedMetricStatuskey, TestStatus>> outputList = outputRDD.collect();
 		
-		JavaRDD<Tuple2<MonitorStatusKey, TestStatus>> outputRDD2 = storage.load(context, MonitorStatusKey.class, TestStatus.class);
+		JavaPairRDD<MonitorStatusKey, TestStatus> outputRDD2 = storage.load(context, MonitorStatusKey.class, TestStatus.class);
 		List<Tuple2<MonitorStatusKey, TestStatus>> outputList2 = outputRDD2.collect();
 		
 		assertEquals(tuple1, outputList.get(0));
@@ -137,7 +136,7 @@ public class SingleFileStatusesStorageTest {
 		varStatuses.put("var2-id2", status);
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id2, varStatuses));
 
-		RDD<Tuple2<DefinedMetricStatuskey, VariableStatuses>> inputRDD = RDD.from(context.parallelize(inputList));
+		JavaPairRDD<DefinedMetricStatuskey, VariableStatuses> inputRDD = context.parallelize(inputList).mapToPair(f->f);
 		storage.save(inputRDD, new Time(0));
 		
 		
@@ -153,12 +152,12 @@ public class SingleFileStatusesStorageTest {
 		varStatuses.put("var3-id2", status);
 		inputList.add(new Tuple2<DefinedMetricStatuskey, VariableStatuses>(id2, varStatuses));
 		
-		inputRDD = RDD.from(context.parallelize(inputList));
+		inputRDD = context.parallelize(inputList).mapToPair(f->f);
 		storage.save(inputRDD, new Time(0));
 		
 		
 		
-		JavaRDD<Tuple2<DefinedMetricStatuskey, VariableStatuses>> outputRDD = storage.load(context, DefinedMetricStatuskey.class, VariableStatuses.class);
+		JavaPairRDD<DefinedMetricStatuskey, VariableStatuses> outputRDD = storage.load(context, DefinedMetricStatuskey.class, VariableStatuses.class);
 		List<Tuple2<DefinedMetricStatuskey, VariableStatuses>> outputList = outputRDD.collect();
 		
 		List<Tuple2<DefinedMetricStatuskey, VariableStatuses>> expectedList = new LinkedList<>();

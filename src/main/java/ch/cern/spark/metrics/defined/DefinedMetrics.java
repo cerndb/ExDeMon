@@ -7,15 +7,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
+import org.apache.spark.streaming.api.java.JavaDStream;
+import org.apache.spark.streaming.api.java.JavaMapWithStateDStream;
+import org.apache.spark.streaming.api.java.JavaPairDStream;
 
 import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.equation.var.VariableStatuses;
+import ch.cern.spark.status.ActionOrValue;
+import ch.cern.spark.status.State;
 import ch.cern.spark.status.StatusKey;
-import ch.cern.spark.status.StatusStream;
 import ch.cern.utils.Pair;
 
 public class DefinedMetrics {
@@ -42,22 +45,24 @@ public class DefinedMetrics {
 		}
 	};
 	
-	public static Stream<Metric> generate(Stream<Metric> metrics, Properties propertiesSourceProps, Optional<Stream<StatusKey>> allStatusesToRemove) throws ClassNotFoundException, IOException, ConfigurationException{
-	    Stream<DefinedMetricStatuskey> statusesToRemove = null;
+	public static JavaDStream<Metric> generate(JavaDStream<Metric> metrics, Properties propertiesSourceProps, Optional<JavaDStream<StatusKey>> allStatusesToRemove) throws ClassNotFoundException, IOException, ConfigurationException{
+	    JavaDStream<DefinedMetricStatuskey> statusesToRemove = null;
         if(allStatusesToRemove.isPresent())
             statusesToRemove = allStatusesToRemove.get()
                                     .filter(key -> key instanceof DefinedMetricStatuskey)
                                     .map(key -> (DefinedMetricStatuskey) key);
+
+        JavaPairDStream<DefinedMetricStatuskey, Metric> idAndMetrics = metrics.flatMapToPair(new ComputeDefinedMetricKeysF(propertiesSourceProps));
         
-		StatusStream<DefinedMetricStatuskey, Metric, VariableStatuses, Metric> statuses = 
-				metrics.mapWithState(
-				        DefinedMetricStatuskey.class, 
-				        VariableStatuses.class, 
-				        new ComputeDefinedMetricKeysF(propertiesSourceProps), 
-				        Optional.ofNullable(statusesToRemove),
-				        new UpdateDefinedMetricStatusesF(propertiesSourceProps));
-		
-        Stream<Metric> definedMetricsWhenBatch = statuses.getStatuses().transform((rdd, time) -> rdd.flatMap(new ComputeBatchDefineMetricsF(time, propertiesSourceProps)));
+        JavaMapWithStateDStream<DefinedMetricStatuskey, ActionOrValue<Metric>, VariableStatuses, Metric> statuses = 
+                State.<DefinedMetricStatuskey, Metric, VariableStatuses, Metric>map(
+                        DefinedMetricStatuskey.class, 
+                        VariableStatuses.class, 
+                        idAndMetrics, 
+                        new UpdateDefinedMetricStatusesF(propertiesSourceProps),
+                        Optional.ofNullable(statusesToRemove));
+
+		JavaDStream<Metric> definedMetricsWhenBatch = statuses.stateSnapshots().transform((rdd, time) -> rdd.flatMap(new ComputeBatchDefineMetricsF(time, propertiesSourceProps)));
         
         return statuses.union(definedMetricsWhenBatch); 
 	}

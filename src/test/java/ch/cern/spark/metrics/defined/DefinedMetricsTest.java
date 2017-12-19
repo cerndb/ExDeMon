@@ -8,12 +8,12 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.Cache;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.metrics.Metric;
 
@@ -72,9 +72,9 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate", "sum");
         propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
 	        
-        Stream<Metric> metricsStream = createStream(Metric.class);
+        JavaDStream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
+        JavaDStream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
         
         assertExpected(results);
 	}
@@ -102,9 +102,9 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         propertiesCache.get().setProperty("metrics.define.dm1.variables.a.aggregate", "sum");
         propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
 	        
-        Stream<Metric> metricsStream = createStream(Metric.class);
+        JavaDStream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
+        JavaDStream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
         
         assertExpected(results);
 	}
@@ -145,9 +145,9 @@ public class DefinedMetricsTest extends StreamTestHelper<Metric, Metric> {
         propertiesCache.get().setProperty("metrics.define.dm1.variables.capacity.filter.attribute.$value_attribute", "capacity_bytes");
         propertiesCache.get().setProperty("metrics.define.dm1.when", "batch");
 	        
-        Stream<Metric> metricsStream = createStream(Metric.class);
+        JavaDStream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
+        JavaDStream<Metric> results = DefinedMetrics.generate(metricsStream, null, Optional.empty());
         
         assertExpected(results);
 	}

@@ -9,13 +9,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Before;
 import org.junit.Test;
 
 import ch.cern.Cache;
 import ch.cern.properties.Properties;
 import ch.cern.spark.Batches;
-import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.metrics.Metric;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
@@ -66,9 +66,9 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         addInput(4,    Metric(now.plus(Duration.ofMinutes(24)), 0, "HOST=host324"));
         
         addInput(5,    Metric(now.plus(Duration.ofMinutes(26)), 0, "HOST=host1"));
-        Stream<Metric> metricsStream = createStream(Metric.class);
+        JavaDStream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Notification> results = Monitors.notify(Monitors.analyze(metricsStream, null, Optional.empty()), null, Optional.empty());
+        JavaDStream<Notification> results = Monitors.notify(Monitors.analyze(metricsStream, null, Optional.empty()), null, Optional.empty());
         
         Batches<Notification> returnedBatches = collect(results);
         
@@ -129,9 +129,9 @@ public class MonitorReturningNotificationsStreamTest extends StreamTestHelper<Me
         addInput(4,    Metric(now.plus(Duration.ofMinutes(21)), 0, "HOST=hostasdf"));
         addInput(4,    Metric(now.plus(Duration.ofMinutes(22)), 0, "HOST=hostasfd"));
         addInput(4,    Metric(now.plus(Duration.ofMinutes(24)), 0, "HOST=host1"));
-        Stream<Metric> metricsStream = createStream(Metric.class);
+        JavaDStream<Metric> metricsStream = createStream(Metric.class);
         
-		Stream<Notification> results = Monitors.notify(Monitors.analyze(metricsStream, null, Optional.empty()), null, Optional.empty());
+        JavaDStream<Notification> results = Monitors.notify(Monitors.analyze(metricsStream, null, Optional.empty()), null, Optional.empty());
         
         Batches<Notification> returnedBatches = collect(results);
         

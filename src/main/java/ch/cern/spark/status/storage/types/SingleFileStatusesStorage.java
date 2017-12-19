@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Time;
@@ -16,7 +17,6 @@ import org.apache.spark.streaming.Time;
 import ch.cern.components.RegisterComponent;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.RDD;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import ch.cern.spark.status.storage.StatusesStorage;
@@ -43,9 +43,9 @@ public class SingleFileStatusesStorage extends StatusesStorage{
 	}
 	
 	@Override
-	public <K extends StatusKey, V extends StatusValue> void save(RDD<Tuple2<K, V>> rdd, Time time)
+	public <K extends StatusKey, V extends StatusValue> void save(JavaPairRDD<K, V> rdd, Time time)
 			throws IllegalArgumentException, IOException, ConfigurationException {
-		save(rdd.asJavaRDD().collect());
+		save(rdd.collect());
 	}
 	
 	public <K extends StatusKey, V extends StatusValue> void save(List<Tuple2<K, V>> elements) throws IOException {
@@ -88,7 +88,7 @@ public class SingleFileStatusesStorage extends StatusesStorage{
     
     @SuppressWarnings("unchecked")
 	@Override
-    public <K extends StatusKey, V extends StatusValue> JavaRDD<Tuple2<K, V>> load(
+    public <K extends StatusKey, V extends StatusValue> JavaPairRDD<K, V> load(
     		JavaSparkContext context, Class<K> keyClass, Class<V> valueClass) 
     				throws IOException, ConfigurationException {
 
@@ -97,7 +97,7 @@ public class SingleFileStatusesStorage extends StatusesStorage{
     		JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = context.parallelize(load(storingPath));
 		
 		return statuses.filter(status -> status._1.getClass().isAssignableFrom(keyClass) && status._2.getClass().isAssignableFrom(valueClass))
-						.map(status -> new Tuple2<K, V>((K)status._1, (V)status._2));
+						.mapToPair(status -> new Tuple2<K, V>((K)status._1, (V)status._2));
     }
     
 	@Override
@@ -142,7 +142,7 @@ public class SingleFileStatusesStorage extends StatusesStorage{
 	}
 
     @Override
-    public <K extends StatusKey> void remove(RDD<K> rdd) {
+    public <K extends StatusKey> void remove(JavaRDD<K> rdd) {
     }
 	
 }

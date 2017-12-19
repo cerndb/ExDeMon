@@ -1,26 +1,30 @@
 package ch.cern.spark.http;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Date;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-
-import java.io.IOException;
-import java.time.Instant;
-
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
-import ch.cern.spark.http.HTTPSink;
 import ch.cern.spark.metrics.results.AnalysisResult;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResult>{
 	
@@ -43,7 +47,7 @@ public class HTTPSinkTest extends StreamTestHelper<AnalysisResult, AnalysisResul
 		analysisResult.setAnalysisTimestamp(instant);
 		addInput(0, analysisResult);
         
-        Stream<AnalysisResult> resultsStream = createStream(AnalysisResult.class);
+		JavaDStream<AnalysisResult> resultsStream = createStream(AnalysisResult.class);
         
         HTTPSink sink = new HTTPSink();
         sink.config(properties);

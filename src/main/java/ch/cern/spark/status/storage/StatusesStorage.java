@@ -2,6 +2,7 @@ package ch.cern.spark.status.storage;
 
 import java.io.IOException;
 
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Time;
@@ -10,7 +11,6 @@ import ch.cern.components.Component;
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentType;
 import ch.cern.properties.ConfigurationException;
-import ch.cern.spark.RDD;
 import ch.cern.spark.status.StatusKey;
 import ch.cern.spark.status.StatusValue;
 import scala.Tuple2;
@@ -22,11 +22,11 @@ public abstract class StatusesStorage extends Component{
 	
 	public static final String STATUS_STORAGE_PARAM = "spark.cern.streaming.status.storage";
 
-	public abstract<K extends StatusKey, V extends StatusValue>  void save(RDD<Tuple2<K, V>> rdd, Time time) 
+	public abstract<K extends StatusKey, V extends StatusValue> void save(JavaPairRDD<K, V> rdd, Time time) 
 			throws IllegalArgumentException, IOException, ConfigurationException;
 
 	@SuppressWarnings("unchecked")
-	public<K extends StatusKey, V extends StatusValue> JavaRDD<Tuple2<K, V>> load(JavaSparkContext context, Class<K> keyClass, Class<V> valueClass)
+	public<K extends StatusKey, V extends StatusValue> JavaPairRDD<K, V> load(JavaSparkContext context, Class<K> keyClass, Class<V> valueClass)
 			throws IOException, ConfigurationException{
 		
 		JavaRDD<Tuple2<StatusKey, StatusValue>> statuses = load(context);
@@ -34,11 +34,11 @@ public abstract class StatusesStorage extends Component{
 		return statuses.filter(status ->
 		                      (keyClass == null || status._1.getClass().isAssignableFrom(keyClass)) 
 		                   && (valueClass == null || status._2.getClass().isAssignableFrom(valueClass)))
-						.map(status -> new Tuple2<K, V>((K)status._1, (V)status._2));
+						.mapToPair(status -> new Tuple2<K, V>((K)status._1, (V)status._2));
 	}
 
 	public abstract JavaRDD<Tuple2<StatusKey, StatusValue>> load(JavaSparkContext context) throws IOException, ConfigurationException;
 
-    public abstract<K extends StatusKey> void remove(RDD<K> rdd);
+    public abstract<K extends StatusKey> void remove(JavaRDD<K> rdd);
 	
 }

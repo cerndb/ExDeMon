@@ -9,6 +9,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.util.ManualClock;
 import org.junit.After;
@@ -71,27 +72,27 @@ public class StreamTestHelper<IN, OUT> implements Serializable {
         expectedBatches.add(batch, element);
     }
     
-    public void assertExpected(Stream<OUT> results) {
+    public void assertExpected(JavaDStream<OUT> results) {
         assertEquals(expectedBatches, collect(results));
     }
     
-    public Stream<IN> createStream(Class<?> class1){
+    public JavaDStream<IN> createStream(Class<?> class1){
         long batchDuration = getBatchDuration();
         
         ClassTag<IN> classTag = scala.reflect.ClassTag$.MODULE$.apply(class1);
         
-        return Stream.from(new JTestInputStream<IN>(sc.ssc(), classTag, inputBatches, batchDuration));
+        return new JTestInputStream<IN>(sc.ssc(), classTag, inputBatches, batchDuration);
     }
     
     private int getNumBatches() {
         return inputBatches.size();
     }
 
-    public Batches<OUT> collect(Stream<OUT> results) {
+    public Batches<OUT> collect(JavaDStream<OUT> results) {
         Batches<OUT> outputBatches = new Batches<>();
         
         results.foreachRDD(rdd -> {
-                outputBatches.addBatch(rdd.asJavaRDD().collect());
+                outputBatches.addBatch(rdd.collect());
             });
         
         start();

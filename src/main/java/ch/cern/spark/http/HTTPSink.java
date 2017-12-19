@@ -23,7 +23,6 @@ import org.apache.spark.streaming.api.java.JavaDStream;
 import ch.cern.Taggable;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Stream;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.json.JSONParser;
 import ch.cern.utils.TimeUtils;
@@ -86,10 +85,10 @@ public class HTTPSink implements Serializable{
         }
 	}
 	
-	public void sink(Stream<?> outputStream) {
+	public void sink(JavaDStream<?> outputStream) {
 		outputStream = outputStream.repartition(parallelization);
 		
-		Stream<Object> jsonStream = outputStream.map(object -> {
+		JavaDStream<Object> jsonStream = outputStream.map(object -> {
 			JSONObject json = JSONParser.parse(object);
 			
 			Map<String, String> tags = null;
@@ -108,7 +107,7 @@ public class HTTPSink implements Serializable{
 			return json;
 		});
 		
-		JavaDStream<String> jsonStringStream = jsonStream.asString().asJavaDStream();
+		JavaDStream<String> jsonStringStream = jsonStream.map(String::valueOf);
 		
 		jsonStringStream.foreachRDD(rdd -> {
 			rdd.foreachPartition(strings -> {

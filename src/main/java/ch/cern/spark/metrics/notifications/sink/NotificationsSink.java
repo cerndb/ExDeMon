@@ -1,9 +1,10 @@
 package ch.cern.spark.metrics.notifications.sink;
 
+import org.apache.spark.streaming.api.java.JavaDStream;
+
 import ch.cern.components.Component;
 import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentType;
-import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.Sink;
 import ch.cern.spark.metrics.notifications.Notification;
 
@@ -23,12 +24,12 @@ public abstract class NotificationsSink extends Component implements Sink<Notifi
 	}
 
 	@Override
-	public final void sink(Stream<Notification> notifications) {
+	public final void sink(JavaDStream<Notification> notifications) {
 		notify(notifications.filter(notif -> 
 							notif.getSinkIds().contains(id)
 							|| notif.getSinkIds().contains("ALL")));
 	}
 
-	protected abstract void notify(Stream<Notification> notifications);
+	protected abstract void notify(JavaDStream<Notification> notifications);
 	
 }

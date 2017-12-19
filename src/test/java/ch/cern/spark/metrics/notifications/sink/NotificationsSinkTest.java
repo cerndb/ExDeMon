@@ -8,12 +8,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.junit.Test;
 
 import ch.cern.Cache;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Stream;
 import ch.cern.spark.StreamTestHelper;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notifications.Notification;
@@ -46,7 +46,7 @@ public class NotificationsSinkTest extends StreamTestHelper<Notification, Notifi
 		addInput(0,    new Notification(null, null, null, null, null, sinks3));
 		Set<String> sinks4 = new HashSet<>(Arrays.asList("aa", "ALL"));
 		addInput(0,    new Notification(null, null, null, null, null, sinks4));
-        Stream<Notification> notificationsStream = createStream(Notification.class);
+		JavaDStream<Notification> notificationsStream = createStream(Notification.class);
 		
 		sink.sink(notificationsStream);
 		
@@ -71,8 +71,8 @@ public class NotificationsSinkTest extends StreamTestHelper<Notification, Notifi
 		}
 		
 		@Override
-		protected void notify(Stream<Notification> notifications) {
-			notifications.foreachRDD(rdd -> notificationsCollector.addAll(rdd.asJavaRDD().collect()));
+		protected void notify(JavaDStream<Notification> notifications) {
+			notifications.foreachRDD(rdd -> notificationsCollector.addAll(rdd.collect()));
 		}
 		
 	}

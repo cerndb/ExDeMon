@@ -11,6 +11,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.streaming.Durations;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import ch.cern.components.Component.Type;
@@ -19,7 +20,6 @@ import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
 import ch.cern.properties.source.PropertiesSource;
 import ch.cern.spark.SparkConf;
-import ch.cern.spark.Stream;
 import ch.cern.spark.metrics.defined.DefinedMetrics;
 import ch.cern.spark.metrics.monitors.Monitors;
 import ch.cern.spark.metrics.notifications.Notification;
@@ -103,36 +103,36 @@ public final class Driver {
 
     protected JavaStreamingContext createNewStreamingContext(Properties propertiesSourceProps) throws Exception {
 	    
-    		Stream<Metric> metrics = getMetricStream(propertiesSourceProps);
+    		JavaDStream<Metric> metrics = getMetricStream(propertiesSourceProps);
     		
-    		Optional<Stream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
+    		Optional<JavaDStream<StatusKey>> statusesToRemove = getStatusesToRemoveStream();
     		
 		metrics = metrics.union(DefinedMetrics.generate(metrics, propertiesSourceProps, statusesToRemove));
 		metrics.cache();
 		
-		Stream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, statusesToRemove);
+		JavaDStream<AnalysisResult> results = Monitors.analyze(metrics, propertiesSourceProps, statusesToRemove);
 		results.cache();
 
-		analysisResultsSink.ifPresent(results::sink);
+		analysisResultsSink.ifPresent(sink -> sink.sink(results));
 		
-		Stream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, statusesToRemove);
+		JavaDStream<Notification> notifications = Monitors.notify(results, propertiesSourceProps, statusesToRemove);
 		notifications.cache();
 		
-    		notificationsSinks.stream().forEach(notifications::sink);
+    		notificationsSinks.stream().forEach(sink -> sink.sink(notifications));
 		
 		return ssc;
 	}
 
-	private Optional<Stream<StatusKey>> getStatusesToRemoveStream() {
+	private Optional<JavaDStream<StatusKey>> getStatusesToRemoveStream() {
 	    if(statuses_removal_socket_host == null || statuses_removal_socket_port == null)
 	        return Optional.empty();
 
-        return Optional.of(Stream.from(ssc.receiverStream(new StatusesKeyReceiver(statuses_removal_socket_host, statuses_removal_socket_port))));
+        return Optional.of(ssc.receiverStream(new StatusesKeyReceiver(statuses_removal_socket_host, statuses_removal_socket_port)));
     }
 
-    public Stream<Metric> getMetricStream(Properties propertiesSourceProps) {
+    public JavaDStream<Metric> getMetricStream(Properties propertiesSourceProps) {
 		return metricSources.stream()
-				.map(source -> MetricSchemas.generate(source.createStream(ssc), propertiesSourceProps, source.getId(), source.getSchema()))
+				.map(source -> MetricSchemas.generate(source.createJavaDStream(ssc), propertiesSourceProps, source.getId(), source.getSchema()))
 				.reduce((str, stro) -> str.union(stro)).get();
 	}
 

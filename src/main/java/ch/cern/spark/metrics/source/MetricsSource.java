@@ -8,7 +8,6 @@ import ch.cern.components.Component.Type;
 import ch.cern.components.ComponentType;
 import ch.cern.properties.ConfigurationException;
 import ch.cern.properties.Properties;
-import ch.cern.spark.Stream;
 import ch.cern.spark.json.JSONObject;
 import ch.cern.spark.metrics.schema.MetricSchema;
 
@@ -41,10 +40,6 @@ public abstract class MetricsSource extends Component {
 		return schema;
 	}
 
-    public final Stream<JSONObject> createStream(JavaStreamingContext ssc){
-    		return Stream.from(createJavaDStream(ssc));
-    }
-	
 	public abstract JavaDStream<JSONObject> createJavaDStream(JavaStreamingContext ssc);
     
 }
